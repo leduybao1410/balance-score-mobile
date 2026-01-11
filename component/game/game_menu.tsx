@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Modal } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Modal, useWindowDimensions } from 'react-native';
 import { gameMode } from "./game_side_controller";
 import { colors } from '@/constant/colors';
 import { ResponsiveFontSize } from '../responsive-text';
 import { Button } from '../button/button';
+import { router } from 'expo-router';
 
 const GameMenu = (
     { isOpen, setIsOpen, setIsSummaryOpen, setIsAddPlayerOpen, setIsModifyBtn, selectedMode, setSelectedMode }
@@ -18,11 +19,14 @@ const GameMenu = (
             setSelectedMode: (value: string) => void
         }
 ) => {
+    const { width, height } = useWindowDimensions();
+    const isLandscape = width > height;
 
     const list = [
         { name: "Thêm người", action: () => { setIsAddPlayerOpen(true); setIsOpen(false) } },
         { name: "Xem tổng kết", action: () => { setIsSummaryOpen(true); setIsOpen(false) } },
         { name: "Tùy chỉnh nút", action: () => { setIsModifyBtn(true); setIsOpen(false) } },
+        { name: "Thoát", action: () => { setIsOpen(false), router.back() } },
     ];
 
 
@@ -38,7 +42,13 @@ const GameMenu = (
                 activeOpacity={1}
                 onPress={() => setIsOpen(false)}
             >
-                <View style={styles.menuContainer}>
+                <View style={[
+                    styles.menuContainer,
+                    {
+                        width: isLandscape ? width * 0.3 : 208,
+                        maxWidth: isLandscape ? width * 0.4 : 300,
+                    }
+                ]}>
                     <View style={styles.content}>
                         <View style={styles.modeContainer}>
                             <Text style={styles.modeTitle}>Chế độ hiện tại</Text>
@@ -90,7 +100,6 @@ const styles = StyleSheet.create({
         top: 0,
         right: 0,
         height: '100%',
-        minWidth: 208,
         backgroundColor: colors.white,
         padding: 8,
     },

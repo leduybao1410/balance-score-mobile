@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Modal, TextInput, Dimensions, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Modal, TextInput, useWindowDimensions, Alert, } from 'react-native';
 import { playerListItem } from "./game_data";
-import { Ionicons, MaterialIcons, FontAwesome, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialIcons, FontAwesome, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
 import { gameMode } from "./game_side_controller";
 import { colors } from '@/constant/colors';
 import { ResponsiveFontSize } from '../responsive-text';
 import { Button } from '../button/button';
-
-const { width } = Dimensions.get('window');
 
 // Helper function to convert Tailwind color classes to React Native color values
 function getColorFromTailwindClass(colorClass: string, type: 'bg' | 'text' = 'bg'): string {
@@ -59,6 +57,8 @@ export default function PlayerList(
             setSelectedHost: (value: number | null) => void,
         }
 ) {
+    const { width, height } = useWindowDimensions();
+    const isLandscape = width > height;
     const [showNameInput, setShowNameInput] = useState(false);
     const [editingPlayerId, setEditingPlayerId] = useState<number | null>(null);
     const [newPlayerName, setNewPlayerName] = useState('');
@@ -110,14 +110,14 @@ export default function PlayerList(
         return (
             <TouchableOpacity
                 key={player.id}
-                style={[styles.playerCard, { backgroundColor }]}
+                style={[styles.playerCard, { backgroundColor, flexBasis: isLandscape ? '31%' : '47%' }]}
                 onPress={() => setSelectedID(player.id)}
                 activeOpacity={0.8}
             >
                 {selectedHost == player.id && (
                     <FontAwesome5 name="crown" size={ResponsiveFontSize(32)} color={colors.white} style={styles.crownIcon} />
                 )}
-                <Text style={styles.playerName}>{player.name}</Text>
+                <Text style={[styles.playerName, { fontSize: isLandscape ? ResponsiveFontSize(14) : ResponsiveFontSize(24) }]}>{player.name}</Text>
                 <Text style={styles.playerScore}>{player.point}</Text>
                 {(player.id == selecetedId) && (
                     <>
@@ -136,7 +136,7 @@ export default function PlayerList(
                             <MaterialIcons name="swap-horiz" size={ResponsiveFontSize(20)} color={textColor} />
                         </TouchableOpacity>
                         <TouchableOpacity
-                            style={styles.editButton}
+                            style={[styles.editButton, { borderRadius: isLandscape ? ResponsiveFontSize(12) : ResponsiveFontSize(25) }]}
                             onPress={() => changeName(player.id)}
                             activeOpacity={0.7}
                         >
@@ -145,7 +145,7 @@ export default function PlayerList(
 
                         {selectedMode == gameMode[0].name ? (
                             <View style={styles.editLabel}>
-                                <Text style={[styles.editLabelText, { color: textColor }]}>Edit</Text>
+                                <Text style={[styles.editLabelText, { color: textColor, fontSize: isLandscape ? ResponsiveFontSize(14) : ResponsiveFontSize(20) }]}>Edit</Text>
                             </View>
                         ) : (
                             selectedHost == player.id ? (
@@ -177,6 +177,8 @@ export default function PlayerList(
             <ScrollView
                 style={styles.container}
                 contentContainerStyle={styles.contentContainer}
+                showsVerticalScrollIndicator={true}
+                showsHorizontalScrollIndicator={false}
             >
                 {(currentPool) && currentPool.map(playerId => (<PlayerItem key={playerId} playerId={playerId} />))}
             </ScrollView>
@@ -191,7 +193,7 @@ export default function PlayerList(
                 }}
             >
                 <View style={styles.nameInputOverlay}>
-                    <View style={styles.nameInputContainer}>
+                    <View style={[styles.nameInputContainer, { width: isLandscape ? width * 0.4 : width * 0.8 }]}>
                         <Text style={styles.nameInputTitle}>
                             Nhập tên mới cho {editingPlayerId && list?.find(p => p.id === editingPlayerId)?.name}
                         </Text>
@@ -229,8 +231,7 @@ export default function PlayerList(
 
 const styles = StyleSheet.create({
     container: {
-        width: '100%',
-        height: '100%',
+        flex: 1,
         padding: 16,
     },
     contentContainer: {
@@ -238,12 +239,10 @@ const styles = StyleSheet.create({
         flexWrap: 'wrap',
         gap: 16,
         justifyContent: 'flex-start',
+        paddingBottom: 16,
     },
     playerCard: {
-        flex: 1,
-        minWidth: width * 0.4,
-        maxWidth: width * 0.45,
-        minHeight: 160,
+        minHeight: 200,
         borderRadius: 12,
         justifyContent: 'center',
         alignItems: 'center',
@@ -257,7 +256,6 @@ const styles = StyleSheet.create({
     },
     playerName: {
         fontWeight: 'bold',
-        fontSize: ResponsiveFontSize(24),
         color: colors.white,
         marginBottom: 8,
     },
@@ -291,9 +289,8 @@ const styles = StyleSheet.create({
     },
     editButton: {
         position: 'absolute',
-        top: 16,
-        right: 16,
-        borderRadius: ResponsiveFontSize(25),
+        top: 10,
+        right: 10,
         width: ResponsiveFontSize(40),
         height: ResponsiveFontSize(40),
         justifyContent: 'center',
@@ -301,9 +298,8 @@ const styles = StyleSheet.create({
     },
     editLabel: {
         position: 'absolute',
-        left: '50%',
-        bottom: 40,
-        transform: [{ translateX: -40 }],
+        left: 10,
+        bottom: 10,
         backgroundColor: colors.white,
         borderRadius: 20,
         paddingHorizontal: 16,
@@ -313,7 +309,6 @@ const styles = StyleSheet.create({
     },
     editLabelText: {
         fontWeight: 'bold',
-        fontSize: ResponsiveFontSize(20),
     },
     hostButton: {
         position: 'absolute',
@@ -334,7 +329,6 @@ const styles = StyleSheet.create({
         backgroundColor: colors.white,
         borderRadius: 12,
         padding: 20,
-        width: width * 0.8,
         maxWidth: 400,
         gap: 16,
     },

@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, useWindowDimensions } from "react-native";
-import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 import { playerListItem } from "./game_data";
 import { colors } from '@/constant/colors';
 import { ResponsiveFontSize } from '../responsive-text';
 
-function BalanceContainer({ list, showMenu, summary, balanceScore }: { balanceScore: number, list: playerListItem[] | null, showMenu: () => void, summary: () => void }) {
-    const [isBalanced, setIsBalanced] = useState<boolean>(true);
+function BalanceContainer({ showMenu, summary, balanceScore }: { balanceScore: number, showMenu: () => void, summary: () => void }) {
     const { width, height } = useWindowDimensions();
     const isLandscape = width > height;
+    const [isBalanced, setIsBalanced] = useState<boolean>(true);
+
 
     useEffect(() => {
         if (balanceScore !== 0) {
@@ -22,11 +23,16 @@ function BalanceContainer({ list, showMenu, summary, balanceScore }: { balanceSc
         return (
             <View style={[
                 styles.balanceIcon,
-                { backgroundColor: isBalanced ? colors.green[500] : colors.red[500] }
+                {
+                    backgroundColor: isBalanced ? colors.green[500] : colors.red[500],
+                    width: isLandscape ? ResponsiveFontSize(16) : ResponsiveFontSize(40),
+                    height: isLandscape ? ResponsiveFontSize(16) : ResponsiveFontSize(40),
+                    borderRadius: isLandscape ? ResponsiveFontSize(20) : ResponsiveFontSize(40) / 2,
+                }
             ]}>
                 <MaterialIcons
                     name={isBalanced ? "check" : "close"}
-                    size={ResponsiveFontSize(24)}
+                    size={isLandscape ? ResponsiveFontSize(12) : ResponsiveFontSize(24)}
                     color={colors.white}
                 />
             </View>
@@ -47,23 +53,29 @@ function BalanceContainer({ list, showMenu, summary, balanceScore }: { balanceSc
     }
 
     return (
-        <View style={[styles.container, isLandscape && styles.containerLandscape]}>
+        <View style={[styles.container, { minHeight: isLandscape ? '35%' : 75 }]}>
             <View style={styles.balanceContainer}>
                 <View style={styles.balanceContent}>
-                    <Text style={styles.balanceScore}>{balanceScore}</Text>
+                    <Text style={[
+                        styles.balanceScore,
+                        {
+                            fontSize: isLandscape ? ResponsiveFontSize(24) : ResponsiveFontSize(60),
+                            lineHeight: isLandscape ? ResponsiveFontSize(24) : ResponsiveFontSize(60),
+                        }
+                    ]}>{balanceScore}</Text>
                     {isBalanced ? renderBalanceBtn(true) : renderBalanceBtn(false)}
                 </View>
             </View>
-            <View style={[styles.menuContainer, isLandscape ? styles.menuContainerLandscape : styles.menuContainerPortrait]}>
+            <View style={{ flex: 1, flexDirection: isLandscape ? 'column' : 'row', gap: 6, paddingHorizontal: 8 }}>
                 <MenuBtn
                     bgColor="bg-green-500"
                     func={summary}
-                    icon={<Ionicons name="arrow-forward" size={ResponsiveFontSize(24)} color={colors.white} />}
+                    icon={<MaterialIcons name="check" size={isLandscape ? ResponsiveFontSize(14) : ResponsiveFontSize(24)} color={colors.white} />}
                 />
                 <MenuBtn
                     bgColor="bg-gray-500"
                     func={showMenu}
-                    icon={<MaterialIcons name="menu" size={ResponsiveFontSize(24)} color={colors.white} />}
+                    icon={<MaterialIcons name="menu" size={isLandscape ? ResponsiveFontSize(14) : ResponsiveFontSize(24)} color={colors.white} />}
                 />
             </View>
         </View>
@@ -72,27 +84,18 @@ function BalanceContainer({ list, showMenu, summary, balanceScore }: { balanceSc
 
 const styles = StyleSheet.create({
     container: {
-        display: 'flex',
-        flexDirection: 'row',
         width: '100%',
-        minHeight: 60,
-        justifyContent: 'space-between',
-        alignItems: 'center',
         borderTopWidth: 2,
         borderBottomWidth: 2,
         borderColor: colors['light-grey'][50],
         paddingVertical: 8,
-    },
-    containerLandscape: {
-        flexDirection: 'column',
-        height: '100%',
+        flexDirection: 'row',
     },
     balanceContainer: {
         flex: 1,
         flexDirection: 'column',
-        maxWidth: '50%',
+        maxWidth: '100%',
         minHeight: 59,
-        // backgroundColor: colors['dark-grey'][500],
         overflow: 'hidden',
         justifyContent: 'center',
         alignItems: 'center',
@@ -107,32 +110,12 @@ const styles = StyleSheet.create({
     balanceScore: {
         color: colors.white,
         fontWeight: '600',
-        fontSize: ResponsiveFontSize(60),
-        lineHeight: ResponsiveFontSize(60),
     },
     balanceIcon: {
-        width: ResponsiveFontSize(40),
-        height: ResponsiveFontSize(40),
-        borderRadius: ResponsiveFontSize(40) / 2,
         justifyContent: 'center',
         alignItems: 'center',
     },
-    menuContainer: {
-        display: 'flex',
-        flexDirection: 'row',
-        minHeight: 64,
-        justifyContent: 'center',
-        alignItems: 'center',
-        gap: 8,
-    },
-    menuContainerLandscape: {
-        flexDirection: 'column',
-        height: '100%',
-    },
-    menuContainerPortrait: {
-        minHeight: 60,
-        maxWidth: '50%',
-    },
+
     menuButton: {
         flex: 1,
         justifyContent: 'center',

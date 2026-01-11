@@ -6,7 +6,8 @@ import { colors } from '@/constant/colors';
 
 export default function RootLayout() {
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors['dark-grey'][100] }} >
+    // <SafeAreaView style={{ flex: 1, backgroundColor: colors['dark-grey'][100] }} >
+    <>
       <StatusBar hidden />
       <Stack
         screenOptions={{
@@ -16,6 +17,7 @@ export default function RootLayout() {
         <Stack.Screen name="index" options={{ title: 'Home' }} />
         <Stack.Screen name="game" options={{ title: 'Game' }} />
       </Stack>
-    </SafeAreaView >
+    </>
+    // </SafeAreaView >
   );
 }

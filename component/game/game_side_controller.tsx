@@ -12,7 +12,6 @@ import ConfirmPopup from "../popup/confirm-popup";
 import { colors } from '@/constant/colors';
 import { ResponsiveFontSize } from '../responsive-text';
 
-
 export const gameMode = [
     { id: 'tien-len', name: 'Tiến lên' },
     { id: 'xi-dach', name: 'Xì dách' },
@@ -35,6 +34,8 @@ export default function SideController({ selectedMode, setSelectedMode, currentP
         selectedHost: number | null,
     }) {
 
+    const { width, height } = useWindowDimensions();
+    const isLandscape = width > height;
     const [balanceScore, setBalanceScore] = useState<number>(0);
     const [isSummaryOpen, setIsSummaryOpen] = useState<boolean>(false);
     const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
@@ -114,7 +115,7 @@ export default function SideController({ selectedMode, setSelectedMode, currentP
 
     function addPointButtonText(point: number) {
         return (
-            <Text style={styles.pointButtonText}>
+            <Text style={[styles.pointButtonText, { fontSize: isLandscape ? ResponsiveFontSize(14) : ResponsiveFontSize(36) }]}>
                 {(point > 0) ? `+${point}` : `${point}`}
             </Text>
         );
@@ -202,8 +203,6 @@ export default function SideController({ selectedMode, setSelectedMode, currentP
 
 
 
-    const { width, height } = useWindowDimensions();
-    const isLandscape = width > height;
 
     return (
         <View style={[styles.container, isLandscape && styles.containerLandscape]}>
@@ -217,7 +216,7 @@ export default function SideController({ selectedMode, setSelectedMode, currentP
                 </View>
             </View>
 
-            <BalanceContainer balanceScore={balanceScore} list={list} showMenu={showMenu} summary={summary} />
+            <BalanceContainer balanceScore={balanceScore} showMenu={showMenu} summary={summary} />
             <PopupSummary list={list} currentPool={currentPool} isSummaryOpen={isSummaryOpen} setIsSummaryOpen={setIsSummaryOpen} />
             <GameMenu selectedMode={selectedMode} setSelectedMode={setSelectedMode} isOpen={isMenuOpen} setIsOpen={setIsMenuOpen} setIsModifyBtn={setIsModifyBtn} setIsSummaryOpen={setIsSummaryOpen} setIsAddPlayerOpen={setIsAddPlayerOpen} />
             <PopupAddPlayer list={list} setList={setList} isOpen={isAddPlayerOpen} setIsOpen={setIsAddPlayerOpen} currentPool={currentPool} setCurrentPool={setCurrentPool} />
@@ -247,15 +246,14 @@ export default function SideController({ selectedMode, setSelectedMode, currentP
 
 const styles = StyleSheet.create({
     container: {
-        minWidth: '20%',
-        flex: 1,
+        flexShrink: 1,
         flexDirection: 'column-reverse',
         justifyContent: 'space-between',
         alignItems: 'center',
         backgroundColor: colors['dark-grey'][700],
     },
     containerLandscape: {
-        minWidth: '10%',
+        maxWidth: '25%',
         flexDirection: 'column',
     },
     buttonContainer: {
@@ -297,12 +295,12 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         justifyContent: 'center',
         alignItems: 'center',
+        paddingVertical: 8,
         paddingHorizontal: 8,
         zIndex: 10,
         overflow: 'hidden',
     },
     pointButtonText: {
-        fontSize: ResponsiveFontSize(50),
         fontWeight: 'bold',
         color: colors.black,
     },
