@@ -13,9 +13,8 @@ import { colors } from '@/constant/colors';
 import { ResponsiveFontSize } from '../responsive-text';
 
 export const gameMode = [
-    { id: 'tien-len', name: 'Tiến lên' },
-    { id: 'xi-dach', name: 'Xì dách' },
-    { id: 'bai-cao', name: 'Bài cào' },
+    { id: 'free', name: 'Tự do' },
+    { id: 'with-host', name: 'Quản trò' },
 ]
 
 export default function SideController({ selectedMode, setSelectedMode, currentPool, setCurrentPool, list, setList, selecetedId, setSelectedID, isSwapPlayerOpen, setIsSwapPlayerOpen, selectedHost }
