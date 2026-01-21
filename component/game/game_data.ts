@@ -7,7 +7,7 @@ export type playerListItem = {
     textColor: string;
 };
 
-export const playerList : playerListItem[] = [
+export const playerList: playerListItem[] = [
     {
         id: 1,
         name: "Thuận",
@@ -80,4 +80,20 @@ export const playerList : playerListItem[] = [
         bgColor: "bg-blue-500",
         textColor: "text-blue-500",
     }
+];
+
+export const bgColorList = [
+    "bg-red-500",
+    "bg-blue-500",
+    "bg-green-500",
+    "bg-yellow-500",
+    "bg-purple-500",
+    "bg-pink-500",
+    "bg-gray-500",
+    "bg-indigo-500",
+    "bg-orange-500",
+    "bg-teal-500",
+    "bg-cyan-500",
+    "bg-lime-500",
+    "bg-emerald-500",
 ];

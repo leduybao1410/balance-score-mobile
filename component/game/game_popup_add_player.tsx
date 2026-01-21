@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Modal, ScrollView, Dimensions, TextInput, Alert } from 'react-native';
-import { playerList, playerListItem } from "./game_data";
+import { playerListItem } from "./game_data";
 import { colors } from '@/constant/colors';
 import { ResponsiveFontSize } from '../responsive-text';
 import { Button } from '../button/button';
+import { t } from 'i18next';
 
 const { width, height } = Dimensions.get('window');
 
@@ -16,7 +17,7 @@ const PopupAddPlayer = ({ isOpen, setIsOpen, currentPool, setCurrentPool, list, 
     const [newPlayerName, setNewPlayerName] = useState('');
 
     if (!currentPool) return null;
-    const outsidePlayer = playerList.filter(player => !currentPool.includes(player.id))
+    const outsidePlayer = list?.filter(player => !currentPool.includes(player.id)) || [];
 
     const addPlayer = (playerId: number) => {
         const newList = [...currentPool];
@@ -72,7 +73,7 @@ const PopupAddPlayer = ({ isOpen, setIsOpen, currentPool, setCurrentPool, list, 
             >
                 <View style={styles.popupContainer}>
                     <View style={styles.popup}>
-                        <Text style={styles.title}>Thêm người chơi</Text>
+                        <Text style={styles.title}>{t('addPlayer')}</Text>
                         <ScrollView
                             style={styles.playerList}
                             contentContainerStyle={styles.playerListContent}
@@ -89,7 +90,7 @@ const PopupAddPlayer = ({ isOpen, setIsOpen, currentPool, setCurrentPool, list, 
                             ))}
                         </ScrollView>
                         <Button
-                            title="Thêm tên mới"
+                            title={t('addNewName')}
                             onClick={() => setShowNameInput(true)}
                             style={styles.addButton}
                             textColor={colors.white}

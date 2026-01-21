@@ -3,6 +3,7 @@ import { HorizontalView, VerticalView } from "@/component/view";
 import { colors } from "@/constant/colors";
 import { History, HistoryItem } from "@/hooks/useGameHistory";
 import { GameState } from "@/hooks/useGameState";
+import { t } from "i18next";
 import { Dimensions, FlatList, ScrollView, StyleSheet, Text, TextStyle, View, ViewStyle } from "react-native";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -17,7 +18,7 @@ export default function HistorySheet({ history }: { history: History }) {
             (dataItem, index) => dataItem.id === index + 1
         );
 
-        const modeLabel = (item.mode === 'free') ? 'Tự do' : 'Quản trò';
+        const modeLabel = (item.mode === 'free') ? t('free') : t('withHost');
         if (hasContinuousIds) {
             return <Row {...item} mode={modeLabel} />;
         }
@@ -45,7 +46,7 @@ export default function HistorySheet({ history }: { history: History }) {
 
 
     return <VerticalView styles={{ flex: 1 }} justifyContent="flex-start" alignItems="flex-start">
-        <Text style={styles.title}>Bảng tổng kết</Text>
+        <Text style={styles.title}>{t('summaryTable')}</Text>
         <ScrollView
             contentContainerStyle={{ flexGrow: 1 }}
         >
@@ -63,7 +64,7 @@ export default function HistorySheet({ history }: { history: History }) {
                             mode={''}
                             rowStyle={{ backgroundColor: colors.yellow[300], flexGrow: 0 }}
                             slotTextStyle={{ fontWeight: '700' }}
-                            row={'Tổng'}
+                            row={t('total')}
                             data={totalData}
                         />
                     </>}
@@ -74,7 +75,7 @@ export default function HistorySheet({ history }: { history: History }) {
                 mode={''}
                 rowStyle={{ backgroundColor: colors.yellow[300], flexGrow: 0 }}
                 slotTextStyle={{ fontWeight: '700' }}
-                row={'Tổng'}
+                row={t('total')}
                 data={totalData}
             />
         </ScrollView>

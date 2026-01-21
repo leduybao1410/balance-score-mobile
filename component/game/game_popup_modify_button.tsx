@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Modal, ScrollView, Dimensions
 import { colors } from '@/constant/colors';
 import { ResponsiveFontSize } from '../responsive-text';
 import { Button } from '../button/button';
+import { t } from "i18next";
 
 const DEFAULT_MULTIPLE_BTN_TEMPLATE = [
     [2, 4],
@@ -140,7 +141,7 @@ const PopupModifyButton = ({ isOpen, setIsOpen, setMultiplePointValue, setSingle
                 onPress={() => setIsOpen(false)}
             >
                 <View style={styles.popupContainer}>
-                    <Text style={styles.title}>Tùy chỉnh nút</Text>
+                    <Text style={styles.title}>{t('modifyButton')}</Text>
                     <ScrollView
                         horizontal
                         style={styles.scrollView}
@@ -175,7 +176,7 @@ const PopupModifyButton = ({ isOpen, setIsOpen, setMultiplePointValue, setSingle
                             )}
                         </View> */}
                     </ScrollView>
-                    <Text style={styles.hintText}>Lướt sang phải để xem thêm</Text>
+                    <Text style={styles.hintText}>{t('scrollRightToSeeMore')}</Text>
                 </View>
             </TouchableOpacity>
         </Modal>

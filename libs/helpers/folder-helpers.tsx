@@ -41,7 +41,6 @@ type HistoryEncodeItem = {
 
 const parseHistoryContent = (content: string): History => {
     const data = JSON.parse(content);
-    console.log('parseData', data)
     const history = data?.history?.map((item: HistoryEncodeItem) => ({
         data: item.d.map((data) => ({
             id: data.id,
@@ -79,6 +78,14 @@ const deleteAllFolder = async () => {
     });
 };
 
+const deleteAllGameFolder = async () => {
+    const folderList = await getFolderList();
+    const gameFolderList = folderList.filter((folder) => folder.name.startsWith('Game_'));
+    gameFolderList.forEach(async (folder) => {
+        await deleteFolder(folder.name);
+    });
+};
+
 export const folderHelpers = {
     FOLDER_PATH,
     generateFolderName,
@@ -91,5 +98,6 @@ export const folderHelpers = {
     readFileContent,
     getFolderList,
     deleteAllFolder,
+    deleteAllGameFolder,
     parseHistoryContent,
 };

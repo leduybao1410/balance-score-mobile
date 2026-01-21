@@ -42,7 +42,6 @@ export function useGameHistory({ folderName, playerData }: { folderName: string,
                     if (content) {
                         try {
                             const parsed = JSON.parse(content);
-                            console.log('parse history', content);
                             setHistory({
                                 playerData: parsed.playerData || [],
                                 history: parsed.history || []

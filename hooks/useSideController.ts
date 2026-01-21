@@ -63,8 +63,7 @@ export function useSideController(gameState: GameState) {
             return;
         }
         if (!list) return;
-        console.log('selectedHost', selectedHost);
-        console.log('selectedMode', selectedMode)
+
         const newList = [...list];
         let hostIndex = null;
         if (selectedMode === 'with-host') {

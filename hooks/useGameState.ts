@@ -3,6 +3,7 @@ import { playerList, playerListItem } from '@/component/game/game_data';
 import { gameMode } from '@/component/game/game_side_controller';
 import { History, HistoryItem, useGameHistory } from './useGameHistory';
 import { useLocalSearchParams } from 'expo-router';
+import { getConfigData } from '@/app/setting';
 
 
 export type GameState = {
@@ -27,7 +28,7 @@ export type GameState = {
 export function useGameState(): GameState {
     const params = useLocalSearchParams();
     const folderName = (params.folderName as string) || '';
-    const [list, setList] = useState<playerListItem[] | null>(playerList);
+    const [list, setList] = useState<playerListItem[] | null>(null);
     const [currentPool, setCurrentPool] = useState<number[] | null>([1, 2, 3, 4]);
     const [selectedId, setSelectedId] = useState<number | null>(null);
     const [isSwapPlayerOpen, setIsSwapPlayerOpen] = useState<boolean>(false);
@@ -35,6 +36,13 @@ export function useGameState(): GameState {
     const [selectedHost, setSelectedHost] = useState<number | null>(null);
 
     const { history, setHistory, addHistory } = useGameHistory({ folderName, playerData: list || [] });
+
+    useEffect(() => {
+        getConfigData().then((data) => {
+            console.log(data)
+            setList(data);
+        });
+    }, [])
 
     // Reset selectedHost when mode changes to "Tự do"
     useEffect(() => {

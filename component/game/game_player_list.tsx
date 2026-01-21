@@ -7,6 +7,7 @@ import { colors } from '@/constant/colors';
 import { ResponsiveFontSize } from '../responsive-text';
 import { Button } from '../button/button';
 import { GameState, useGameState } from '@/hooks/useGameState';
+import { t } from 'i18next';
 
 // Helper function to convert Tailwind color classes to React Native color values
 function getColorFromTailwindClass(colorClass: string, type: 'bg' | 'text' = 'bg'): string {
@@ -58,6 +59,9 @@ export default function PlayerList(
     const [showNameInput, setShowNameInput] = useState(false);
     const [editingPlayerId, setEditingPlayerId] = useState<number | null>(null);
     const [newPlayerName, setNewPlayerName] = useState('');
+    const editingPlayerName = useMemo(() => {
+        return editingPlayerId && list?.find(p => p.id === editingPlayerId)?.name;
+    }, [editingPlayerId, list]);
 
     function hidePlayer(playerId: number) {
         const newList = currentPool?.filter(id => id !== playerId);
@@ -193,18 +197,18 @@ export default function PlayerList(
                 <View style={styles.nameInputOverlay}>
                     <View style={[styles.nameInputContainer, { width: isLandscape ? width * 0.4 : width * 0.8 }]}>
                         <Text style={styles.nameInputTitle}>
-                            Nhập tên mới cho {editingPlayerId && list?.find(p => p.id === editingPlayerId)?.name}
+                            {t('enterNewNameFor', { name: editingPlayerName })}
                         </Text>
                         <TextInput
                             style={styles.nameInput}
                             value={newPlayerName}
                             onChangeText={setNewPlayerName}
-                            placeholder="Tên người chơi"
+                            placeholder={t('playerName')}
                             autoFocus
                         />
                         <View style={styles.nameInputButtons}>
                             <Button
-                                title="Hủy"
+                                title={t('cancel')}
                                 onClick={() => {
                                     setShowNameInput(false);
                                     setEditingPlayerId(null);
@@ -214,7 +218,7 @@ export default function PlayerList(
                                 style={styles.nameInputCancelButton}
                             />
                             <Button
-                                title="Lưu"
+                                title={t('save')}
                                 onClick={handleSaveName}
                                 style={styles.nameInputSaveButton}
                                 textColor={colors.white}

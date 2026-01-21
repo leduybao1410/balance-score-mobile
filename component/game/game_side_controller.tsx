@@ -11,10 +11,11 @@ import { colors } from '@/constant/colors';
 import { ResponsiveFontSize } from '../responsive-text';
 import { GameState } from "@/hooks/useGameState";
 import { useSideController } from "@/hooks/useSideController";
+import { t } from "i18next";
 
 export const gameMode: { id: GameState['selectedMode'], name: string }[] = [
-    { id: 'free', name: 'Tự do' },
-    { id: 'with-host', name: 'Quản trò' },
+    { id: 'free', name: 'free' },
+    { id: 'with-host', name: 'withHost' },
 ]
 
 export default function SideController({ gameState }

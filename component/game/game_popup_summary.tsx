@@ -10,6 +10,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import DataTable, { COL_TYPES } from "react-native-datatable-component-v2";
 import HistorySheet from "./summary-popup/history-sheet";
 import { GameState } from "@/hooks/useGameState";
+import { t } from "i18next";
 
 type playerSum = {
     id: number;
@@ -73,7 +74,7 @@ const PopupSummary = ({ gameState, isSummaryOpen, setIsSummaryOpen }: PopupSumma
 
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Button
-                        title="Export"
+                        title={'Export'}
                         onClick={() => { }}
                         style={{ backgroundColor: '#10b981', borderRadius: 9999, paddingHorizontal: 16, paddingVertical: 8 }}
                         textColor="#ffffff"
@@ -81,7 +82,7 @@ const PopupSummary = ({ gameState, isSummaryOpen, setIsSummaryOpen }: PopupSumma
                     />
                     {/* <MySwitchButton swPaddingHorizontal="4" firstLable="Lịch sử" secondLabel="Biểu đồ" isOn={isExcelShow} setIsOn={setIsExcelShow} /> */}
                     <Button
-                        title="Close"
+                        title={t('close')}
                         onClick={() => setIsSummaryOpen(false)}
                         style={{ backgroundColor: '#ef4444', borderRadius: 9999, paddingHorizontal: 16, paddingVertical: 8 }}
                         textColor="#ffffff"

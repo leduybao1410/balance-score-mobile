@@ -6,18 +6,24 @@ import { colors } from "@/constant/colors";
 import { folderHelpers } from "@/libs/helpers/folder-helpers";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
-import { FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity } from "react-native";
+import { FlatList, Image, Pressable, RefreshControl, StyleSheet, Text, TouchableOpacity } from "react-native";
+import { BannerAd, BannerAdSize } from "react-native-google-mobile-ads";
+import { bannerAd } from "../index";
+import { t } from "i18next";
+import { icons } from "@/constant/images";
+import { renderHitSlop } from "@/utils/utils";
 
 export default function HistoryScreen() {
     const [history, setHistory] = useState<string[]>([]);
     const [refreshing, setRefreshing] = useState(false);
-    const [showConfirmPopup, setShowConfirmPopup] = useState(false);
+    const [showClearAllConfirmPopup, setShowClearAllConfirmPopup] = useState(false);
 
     const getHistory = async () => {
         setRefreshing(true);
         const folders = await folderHelpers.getFolderList();
-        folders.sort((a, b) => Number(b.name.split('_').pop()) - Number(a.name.split('_').pop()));
-        setHistory(folders.map((folder) => folder.name));
+        const gameHistory = folders.filter((folder) => folder.name.startsWith('Game_'));
+        gameHistory.sort((a, b) => Number(b.name.split('_').pop()) - Number(a.name.split('_').pop()));
+        setHistory(gameHistory.map((folder) => folder.name));
         setRefreshing(false);
     }
     useEffect(() => {
@@ -25,11 +31,19 @@ export default function HistoryScreen() {
     }, []);
 
 
+    const [selectedFolderName, setSelectedFolderName] = useState<string | null>(null);
+    const [showConfirmDeletePopup, setShowConfirmDeletePopup] = useState(false);
+    const deleteGame = async (folderName: string) => {
+        await folderHelpers.deleteFolder(folderName);
+        getHistory();
+    }
+
     const HistoryItem = ({ item, index }: { item: string, index: number }) => {
         const timeValue = item.split('_').pop();
         const time = new Date(Number(timeValue) || '');
         return (
             <TouchableOpacity
+
                 style={styles.historyItemContainer}
                 onPress={() => router.push({
                     pathname: '/history/detail',
@@ -37,7 +51,18 @@ export default function HistoryScreen() {
                         folderName: item,
                     },
                 })}>
-                <Text style={styles.historyItemTitle}>{index + 1}. {time.toLocaleTimeString()} - {time.toLocaleDateString()}</Text>
+                <HorizontalView>
+                    <Text style={styles.historyItemTitle}>{index + 1}. {time.toLocaleTimeString()} - {time.toLocaleDateString()}</Text>
+                    <Pressable
+                        style={{ padding: 6, backgroundColor: colors.red[700], borderRadius: 10 }}
+                        hitSlop={renderHitSlop()}
+                        onPress={() => {
+                            setSelectedFolderName(item);
+                            setShowConfirmDeletePopup(true);
+                        }}>
+                        <Image source={icons.trash} style={{ width: 20, height: 20 }} tintColor={colors.white} />
+                    </Pressable>
+                </HorizontalView>
             </TouchableOpacity>
         )
     }
@@ -45,12 +70,12 @@ export default function HistoryScreen() {
     const HistoryHeader = () => {
         return <HorizontalView alignItems="center" justifyContent="flex-end" gap={10}>
             <Button
-                title="Clear All"
+                title={t('clearAll')}
                 fullWidth={false}
                 variant="default"
                 style={{ backgroundColor: colors.red[700] }}
                 onClick={() => {
-                    setShowConfirmPopup(true);
+                    setShowClearAllConfirmPopup(true);
                 }}
             />
         </HorizontalView>
@@ -59,6 +84,16 @@ export default function HistoryScreen() {
 
     return (
         <>
+            <ConfirmPopup
+                onCancel={() => setShowConfirmDeletePopup(false)}
+                visible={showConfirmDeletePopup}
+                title={t('confirmDeleteGameTitle')}
+                message={t('confirmDeleteGameMessage')}
+                onConfirm={() => {
+                    deleteGame(selectedFolderName || '');
+                    setShowConfirmDeletePopup(false);
+                }}
+            />
             <VerticalView
                 gap={20}
                 alignItems='center'
@@ -74,22 +109,29 @@ export default function HistoryScreen() {
                 />
 
             </VerticalView>
+            <BannerAd
+                unitId={bannerAd}
+                size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+                requestOptions={{
+                    requestNonPersonalizedAdsOnly: true,
+                }}
+            />
             <ConfirmPopup
-                visible={showConfirmPopup}
-                title="Clear All"
-                message="Do you want to clear all history?"
+                visible={showClearAllConfirmPopup}
+                title={t('clearAll')}
+                message={t('confirmClearHistory')}
                 onConfirm={() => {
-                    folderHelpers.deleteAllFolder();
-                    setShowConfirmPopup(false);
+                    folderHelpers.deleteAllGameFolder();
+                    setShowClearAllConfirmPopup(false);
                     setTimeout(() => {
                         getHistory();
                     }, 1000)
                 }}
                 onCancel={() => {
-                    setShowConfirmPopup(false);
+                    setShowClearAllConfirmPopup(false);
                 }}
-                confirmText="Clear All"
-                cancelText="Cancel"
+                confirmText={t('clearAll')}
+                cancelText={t('cancel')}
             />
         </>
     )

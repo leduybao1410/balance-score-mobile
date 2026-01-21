@@ -15,7 +15,6 @@ export default function GameScreen() {
         <View style={[styles.container, isLandscape && styles.containerLandscape]}>
             <PlayerList
                 gameState={gameState}
-
             />
             <SideController
                 gameState={gameState}

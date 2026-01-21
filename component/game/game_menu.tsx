@@ -8,6 +8,8 @@ import { router } from 'expo-router';
 import { useInterstitialAd } from '@/context/interstitial-ad-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { GameState } from '@/hooks/useGameState';
+import { t } from 'i18next';
+import LanguageSelector from '../languageSelector';
 
 const GameMenu = (
     { isOpen, setIsOpen, setIsSummaryOpen, setIsAddPlayerOpen, setIsModifyBtn, selectedMode, setSelectedMode }
@@ -29,11 +31,11 @@ const GameMenu = (
 
 
     const list = [
-        { name: "Thêm người", action: () => { setIsAddPlayerOpen(true); setIsOpen(false) } },
-        { name: "Xem tổng kết", action: () => { setIsSummaryOpen(true); setIsOpen(false) } },
-        { name: "Tùy chỉnh nút", action: () => { setIsModifyBtn(true); setIsOpen(false) } },
+        { name: t('addPlayer'), action: () => { setIsAddPlayerOpen(true); setIsOpen(false) } },
+        { name: t('showSummary'), action: () => { setIsSummaryOpen(true); setIsOpen(false) } },
+        { name: t('modifyButton'), action: () => { setIsModifyBtn(true); setIsOpen(false) } },
         {
-            name: "Thoát",
+            name: t('exit'),
             action: () => {
                 showAd(() => {
                     AsyncStorage.removeItem('gameData').then(() => {
@@ -54,6 +56,7 @@ const GameMenu = (
             animationType="slide"
             onRequestClose={() => setIsOpen(false)}
         >
+
             <TouchableOpacity
                 style={styles.overlay}
                 activeOpacity={1}
@@ -67,8 +70,10 @@ const GameMenu = (
                     }
                 ]}>
                     <View style={styles.content}>
+                        <LanguageSelector />
                         <View style={styles.modeContainer}>
-                            <Text style={styles.modeTitle}>Chế độ hiện tại</Text>
+
+                            <Text style={styles.modeTitle}>{t('currentMode')}</Text>
                             <View style={styles.pickerContainer}>
                                 {gameMode.map((item) => (
                                     <TouchableOpacity
@@ -83,7 +88,7 @@ const GameMenu = (
                                             styles.pickerOptionText,
                                             selectedMode === item.id as 'free' | 'with-host' && styles.pickerOptionTextSelected
                                         ]}>
-                                            {item.name}
+                                            {t(item.name)}
                                         </Text>
                                     </TouchableOpacity>
                                 ))}

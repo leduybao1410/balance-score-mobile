@@ -10,13 +10,16 @@ import { Platform } from 'react-native';
 import { ADS_ID } from '@/constant/ads-id';
 import { useInterstitialAd } from '@/context/interstitial-ad-context';
 import { folderHelpers } from '@/libs/helpers/folder-helpers';
+import LanguageSelector from '@/component/languageSelector';
+import { useLanguage } from '@/hooks/useLanguage';
 
 const screen = Dimensions.get('window');
 
-export default function HomeScreen() {
-  const bannerAd = Platform.OS === 'ios' ? ADS_ID.banner.ios : ADS_ID.banner.android;
-  const { showAd } = useInterstitialAd();
+export const bannerAd = Platform.OS === 'ios' ? ADS_ID.banner.ios : ADS_ID.banner.android;
 
+export default function HomeScreen() {
+  const { showAd } = useInterstitialAd();
+  const { t } = useLanguage();
 
 
   const handleStartNow = () => {
@@ -40,21 +43,25 @@ export default function HomeScreen() {
         alignItems='center'
         justifyContent='center'
         styles={styles.container} >
+
         <Logo />
         <VerticalView gap={0}>
           <Text style={styles.title} >Balance Score Board</Text>
           <SubText style={styles.subtitle}>
-            No memorization required!
+            {t('noMemorizationRequired')}
           </SubText>
           <SubText style={styles.subtitle}>
-            No expertise required!
+            {t('noExpertiseRequired')}
+          </SubText>
+          <SubText style={styles.subtitle}>
+            {t('justPlay')}
           </SubText>
         </VerticalView>
         <VerticalView gap={10}
           justifyContent='flex-start'
           alignItems='stretch' styles={styles.menuContainer}>
           <MenuCardBtn
-            title='Start Now'
+            title={t('startNow')}
             onPress={handleStartNow}
             containerStyle={styles.menuItemContainer}
             backgroundColor={colors.green[700]}
@@ -62,24 +69,26 @@ export default function HomeScreen() {
           />
           <MenuCardBtn
             containerStyle={styles.menuItemContainer}
-            title='History'
+            title={t('history')}
             onPress={() => { router.push('/history') }}
           />
           <MenuCardBtn
-            title='Setting'
+            title={t('settings')}
             onPress={() => { router.push('/setting') }}
             backgroundColor={colors['dark-grey'][300]}
             textColor={colors['dark-grey'][800]}
           />
+
         </VerticalView>
       </VerticalView>
       <BannerAd
         unitId={bannerAd}
-        size={BannerAdSize.FULL_BANNER}
+        size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
         requestOptions={{
           requestNonPersonalizedAdsOnly: true,
         }}
       />
+      <LanguageSelector />
     </>
   );
 }

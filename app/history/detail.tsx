@@ -6,6 +6,8 @@ import { folderHelpers } from "@/libs/helpers/folder-helpers";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { StyleSheet, Text } from "react-native";
+import { BannerAd, BannerAdSize } from "react-native-google-mobile-ads";
+import { bannerAd } from "../index";
 
 export default function HistoryDetailScreen() {
 
@@ -23,15 +25,24 @@ export default function HistoryDetailScreen() {
     }, []);
 
     return (
-        <VerticalView
-            gap={20}
-            alignItems='stretch'
-            justifyContent='center'
-            styles={styles.container} >
-            <HistorySheet
-                history={history || { playerData: [], history: [] } as History}
+        <>
+            <VerticalView
+                gap={20}
+                alignItems='stretch'
+                justifyContent='center'
+                styles={styles.container} >
+                <HistorySheet
+                    history={history || { playerData: [], history: [] } as History}
+                />
+            </VerticalView>
+            <BannerAd
+                unitId={bannerAd}
+                size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+                requestOptions={{
+                    requestNonPersonalizedAdsOnly: true,
+                }}
             />
-        </VerticalView>
+        </>
     )
 }
 

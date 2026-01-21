@@ -25,7 +25,6 @@ export const MenuCardBtn = ({
     textStyle,
 }: MenuCardBtnProps) => {
     const isHorizontal = iconPosition === 'left' || iconPosition === 'right';
-
     return (
         <TouchableOpacity
             activeOpacity={0.7}
