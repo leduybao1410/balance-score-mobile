@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Modal, ScrollView, Dimensions, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Modal, ScrollView, Dimensions, TextInput, ViewStyle } from 'react-native';
 import { colors } from '@/constant/colors';
 import { ResponsiveFontSize } from '../responsive-text';
 import { Button } from '../button/button';
@@ -36,9 +36,9 @@ const PopupModifyButton = ({ isOpen, setIsOpen, setMultiplePointValue, setSingle
         }, 200)
     }
 
-    function renderButton(value: string) {
+    function renderButton(value: string, style?: ViewStyle) {
         return (
-            <View style={styles.buttonDisplay}>
+            <View style={[styles.buttonDisplay, style]}>
                 <Text style={styles.buttonDisplayText}>{value}</Text>
             </View>
         )
@@ -69,8 +69,8 @@ const PopupModifyButton = ({ isOpen, setIsOpen, setMultiplePointValue, setSingle
                         {renderButton(`${item[1]}`)}
                     </View>
                     <View style={styles.buttonColumn}>
-                        {renderButton(`${DEFAULT_SINGLE_BTN_TEMPLATE[index][0]}`)}
-                        {renderButton(`${DEFAULT_SINGLE_BTN_TEMPLATE[index][1]}`)}
+                        {renderButton(`${DEFAULT_SINGLE_BTN_TEMPLATE[index][0]}`, styles.singleButton)}
+                        {renderButton(`${DEFAULT_SINGLE_BTN_TEMPLATE[index][1]}`, styles.singleButton)}
                     </View>
                 </View>
                 <Text style={styles.templateLabel}>{item[0]} - {item[1]}</Text>
@@ -140,44 +140,42 @@ const PopupModifyButton = ({ isOpen, setIsOpen, setMultiplePointValue, setSingle
                 onPress={() => setIsOpen(false)}
             >
                 <View style={styles.popupContainer}>
-                    <View style={styles.popup}>
-                        <Text style={styles.title}>Tùy chỉnh nút</Text>
-                        <ScrollView
-                            horizontal
-                            style={styles.scrollView}
-                            contentContainerStyle={styles.scrollContent}
-                            showsHorizontalScrollIndicator={true}
-                        >
-                            {DEFAULT_MULTIPLE_BTN_TEMPLATE.map((item, index) => (
-                                <RenderModifyBtn key={index} item={item} index={index} />
-                            ))}
-                            <View style={styles.customTemplate}>
-                                <View style={styles.templateButtonContent}>
-                                    <View style={styles.buttonColumn}>
-                                        {editMultiBtn1 ? renderButton(`-${editMultiBtn1}`) : renderButton(`?`)}
-                                        {editMultiBtn2 ? renderButton(`-${editMultiBtn2}`) : renderButton(`?`)}
-                                        {renderEditingButton(2)}
-                                        {renderEditingButton(1)}
-                                    </View>
-                                    <View style={styles.buttonColumn}>
-                                        {editMultiBtn3 ? renderButton(`-${editMultiBtn3}`) : renderButton(`?`)}
-                                        {renderEditingButton(3)}
-                                    </View>
+                    <Text style={styles.title}>Tùy chỉnh nút</Text>
+                    <ScrollView
+                        horizontal
+                        style={styles.scrollView}
+                        contentContainerStyle={styles.scrollContent}
+                        showsHorizontalScrollIndicator={true}
+                    >
+                        {DEFAULT_MULTIPLE_BTN_TEMPLATE.map((item, index) => (
+                            <RenderModifyBtn key={index} item={item} index={index} />
+                        ))}
+                        {/* <View style={styles.customTemplate}>
+                            <View style={styles.templateButtonContent}>
+                                <View style={styles.buttonColumn}>
+                                    {editMultiBtn1 ? renderButton(`-${editMultiBtn1}`) : renderButton(`?`)}
+                                    {editMultiBtn2 ? renderButton(`-${editMultiBtn2}`) : renderButton(`?`)}
+                                    {renderEditingButton(2)}
+                                    {renderEditingButton(1)}
                                 </View>
-                                {!isEditing ? (
-                                    <Text style={styles.templateLabel}>Tùy chỉnh</Text>
-                                ) : (
-                                    <Button
-                                        title="Áp dụng"
-                                        onClick={customBtnTemplate}
-                                        style={styles.applyButton}
-                                        textColor={colors.white}
-                                    />
-                                )}
+                                <View style={styles.buttonColumn}>
+                                    {editMultiBtn3 ? renderButton(`-${editMultiBtn3}`) : renderButton(`?`)}
+                                    {renderEditingButton(3)}
+                                </View>
                             </View>
-                        </ScrollView>
-                        <Text style={styles.hintText}>Lướt sang phải để xem thêm</Text>
-                    </View>
+                            {!isEditing ? (
+                                <Text style={styles.templateLabel}>Tùy chỉnh</Text>
+                            ) : (
+                                <Button
+                                    title="Áp dụng"
+                                    onClick={customBtnTemplate}
+                                    style={styles.applyButton}
+                                    textColor={colors.white}
+                                />
+                            )}
+                        </View> */}
+                    </ScrollView>
+                    <Text style={styles.hintText}>Lướt sang phải để xem thêm</Text>
                 </View>
             </TouchableOpacity>
         </Modal>
@@ -192,10 +190,10 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     popupContainer: {
+        flexShrink: 1,
+        maxHeight: '70%',
         width: width * 0.9,
         maxWidth: 600,
-    },
-    popup: {
         backgroundColor: colors.white,
         borderRadius: 12,
         padding: 16,
@@ -217,7 +215,6 @@ const styles = StyleSheet.create({
     },
     templateButton: {
         maxWidth: '50%',
-        flex: 1,
         backgroundColor: colors['light-grey'][200],
         borderRadius: 8,
         padding: 8,
@@ -232,6 +229,9 @@ const styles = StyleSheet.create({
         gap: 8,
         padding: 8,
         backgroundColor: colors['dark-grey'][500],
+    },
+    singleButton: {
+        flex: 2,
     },
     buttonColumn: {
         flexDirection: 'column',

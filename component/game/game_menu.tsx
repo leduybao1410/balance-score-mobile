@@ -1,10 +1,13 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Modal, useWindowDimensions } from 'react-native';
+import React, { useRef } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Modal, useWindowDimensions, Platform } from 'react-native';
 import { gameMode } from "./game_side_controller";
 import { colors } from '@/constant/colors';
 import { ResponsiveFontSize } from '../responsive-text';
 import { Button } from '../button/button';
 import { router } from 'expo-router';
+import { useInterstitialAd } from '@/context/interstitial-ad-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { GameState } from '@/hooks/useGameState';
 
 const GameMenu = (
     { isOpen, setIsOpen, setIsSummaryOpen, setIsAddPlayerOpen, setIsModifyBtn, selectedMode, setSelectedMode }
@@ -15,18 +18,32 @@ const GameMenu = (
             setIsSummaryOpen: (bool: boolean) => void,
             setIsAddPlayerOpen: (bool: boolean) => void,
             setIsModifyBtn: (bool: boolean) => void,
-            selectedMode: string,
-            setSelectedMode: (value: string) => void
+            selectedMode: GameState['selectedMode'],
+            setSelectedMode: GameState['setSelectedMode']
         }
 ) => {
     const { width, height } = useWindowDimensions();
     const isLandscape = width > height;
 
+    const { showAd } = useInterstitialAd();
+
+
     const list = [
         { name: "Thêm người", action: () => { setIsAddPlayerOpen(true); setIsOpen(false) } },
         { name: "Xem tổng kết", action: () => { setIsSummaryOpen(true); setIsOpen(false) } },
         { name: "Tùy chỉnh nút", action: () => { setIsModifyBtn(true); setIsOpen(false) } },
-        { name: "Thoát", action: () => { setIsOpen(false), router.back() } },
+        {
+            name: "Thoát",
+            action: () => {
+                showAd(() => {
+                    AsyncStorage.removeItem('gameData').then(() => {
+                        setIsOpen(false);
+                        router.back();
+                    })
+
+                });
+            }
+        },
     ];
 
 
@@ -58,13 +75,13 @@ const GameMenu = (
                                         key={item.id}
                                         style={[
                                             styles.pickerOption,
-                                            selectedMode === item.name && styles.pickerOptionSelected
+                                            selectedMode === item.id && styles.pickerOptionSelected
                                         ]}
-                                        onPress={() => setSelectedMode(item.name)}
+                                        onPress={() => setSelectedMode(item.id as 'free' | 'with-host')}
                                     >
                                         <Text style={[
                                             styles.pickerOptionText,
-                                            selectedMode === item.name && styles.pickerOptionTextSelected
+                                            selectedMode === item.id as 'free' | 'with-host' && styles.pickerOptionTextSelected
                                         ]}>
                                             {item.name}
                                         </Text>

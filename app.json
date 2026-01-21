@@ -3,24 +3,23 @@
     "name": "Balance Score Board",
     "slug": "Balance-score-board",
     "version": "1.0.0",
-    "orientation": "auto",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/logo.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "scheme": "balance-score-board",
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/logo.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.balance-score-board.app",
+      "bundleIdentifier": "com.leduybao1410.balancescoreboard",
       "deploymentTarget": "12.0"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/logo.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
@@ -28,11 +27,18 @@
       "package": "com.balancescoreboard.app"
     },
     "web": {
-      "favicon": "./assets/favicon.png",
+      "favicon": "./assets/logo.png",
       "bundler": "metro"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-3488842401803401~7840063542",
+          "iosAppId": "ca-app-pub-3488842401803401~3709246841"
+        }
+      ]
     ]
   }
 }

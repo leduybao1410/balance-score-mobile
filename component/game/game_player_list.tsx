@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Modal, TextInput, useWindowDimensions, Alert, } from 'react-native';
 import { playerListItem } from "./game_data";
 import { MaterialIcons, FontAwesome, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -6,6 +6,7 @@ import { gameMode } from "./game_side_controller";
 import { colors } from '@/constant/colors';
 import { ResponsiveFontSize } from '../responsive-text';
 import { Button } from '../button/button';
+import { GameState, useGameState } from '@/hooks/useGameState';
 
 // Helper function to convert Tailwind color classes to React Native color values
 function getColorFromTailwindClass(colorClass: string, type: 'bg' | 'text' = 'bg'): string {
@@ -43,20 +44,15 @@ function getColorFromTailwindClass(colorClass: string, type: 'bg' | 'text' = 'bg
 }
 
 export default function PlayerList(
-    { list, currentPool, setCurrentPool, selecetedId, setSelectedID, setIsSwapPlayerOpen, selectedMode, selectedHost, setSelectedHost }
+    { gameState }
         :
         {
-            list: playerListItem[] | null,
-            currentPool: number[] | null,
-            setCurrentPool: (array: number[] | null) => void,
-            selecetedId: number | null,
-            setSelectedID: (id: number | null) => void,
-            setIsSwapPlayerOpen: (bool: boolean) => void,
-            selectedMode: string,
-            selectedHost: number | null,
-            setSelectedHost: (value: number | null) => void,
+            gameState: GameState,
         }
 ) {
+    const { list, currentPool, selectedId, isSwapPlayerOpen, selectedMode, selectedHost } = gameState;
+    const { setCurrentPool, setSelectedId, setIsSwapPlayerOpen, setSelectedMode, setSelectedHost } = gameState;
+
     const { width, height } = useWindowDimensions();
     const isLandscape = width > height;
     const [showNameInput, setShowNameInput] = useState(false);
@@ -67,7 +63,7 @@ export default function PlayerList(
         const newList = currentPool?.filter(id => id !== playerId);
         if (!newList) return;
         setCurrentPool(null);
-        setSelectedID(null);
+        setSelectedId(null);
         setTimeout(() => {
             setCurrentPool(newList);
         }, 100)
@@ -97,6 +93,8 @@ export default function PlayerList(
         // The parent component should handle the list update
     }
 
+    const isHostMode = useMemo(() => selectedMode === 'with-host', [selectedMode]);
+
     function PlayerItem({ playerId }: { playerId: number }) {
         if (list == null) return null;
 
@@ -111,15 +109,15 @@ export default function PlayerList(
             <TouchableOpacity
                 key={player.id}
                 style={[styles.playerCard, { backgroundColor, flexBasis: isLandscape ? '31%' : '47%' }]}
-                onPress={() => setSelectedID(player.id)}
+                onPress={() => setSelectedId(player.id)}
                 activeOpacity={0.8}
             >
-                {selectedHost == player.id && (
+                {isHostMode && selectedHost == player.id && (
                     <FontAwesome5 name="crown" size={ResponsiveFontSize(32)} color={colors.white} style={styles.crownIcon} />
                 )}
                 <Text style={[styles.playerName, { fontSize: isLandscape ? ResponsiveFontSize(14) : ResponsiveFontSize(24) }]}>{player.name}</Text>
                 <Text style={styles.playerScore}>{player.point}</Text>
-                {(player.id == selecetedId) && (
+                {(player.id == selectedId) && (
                     <>
                         <TouchableOpacity
                             style={styles.hideButton}
@@ -143,12 +141,12 @@ export default function PlayerList(
                             <FontAwesome name="pencil" size={ResponsiveFontSize(20)} color={colors.white} />
                         </TouchableOpacity>
 
-                        {selectedMode == gameMode[0].name ? (
+                        {!isHostMode ? (
                             <View style={styles.editLabel}>
                                 <Text style={[styles.editLabelText, { color: textColor, fontSize: isLandscape ? ResponsiveFontSize(14) : ResponsiveFontSize(20) }]}>Edit</Text>
                             </View>
                         ) : (
-                            selectedHost == player.id ? (
+                            isHostMode && selectedHost === player.id ? (
                                 <Button
                                     title="UnHost"
                                     onClick={() => setSelectedHost(null)}

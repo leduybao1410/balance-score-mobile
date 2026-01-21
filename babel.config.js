@@ -10,6 +10,7 @@ module.exports = function (api) {
           '@/component': './component',
           '@/constant': './constant',
           '@/utils': './utils',
+          '@/libs': './libs',
         },
       },
     ],
