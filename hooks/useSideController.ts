@@ -66,7 +66,7 @@ export function useSideController(gameState: GameState) {
 
         const newList = [...list];
         let hostIndex = null;
-        if (selectedMode === 'with-host') {
+        if (selectedMode === 'with-host' && selectedHost) {
             hostIndex = newList.findIndex(player => player.id === selectedHost);
         }
         const playerIndex = newList.findIndex(player => player.id === selectedId);

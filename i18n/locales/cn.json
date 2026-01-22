@@ -139,5 +139,7 @@
   "confirmResetConfigTitle": "确认重置配置",
   "confirmResetConfigMessage": "你确定要重置配置吗？",
   "confirmDeleteGameTitle": "确认删除游戏",
-  "confirmDeleteGameMessage": "你确定要删除这个游戏吗？"
+  "confirmDeleteGameMessage": "你确定要删除这个游戏吗？",
+  "confirmExitTitle": "确认退出",
+  "confirmExitMessage": "你确定要退出游戏吗？"
 }

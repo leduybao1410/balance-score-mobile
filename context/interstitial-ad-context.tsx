@@ -32,7 +32,7 @@ export function InterstitialAdProvider({ children }: InterstitialAdProviderProps
 
   const showAd = (onClosed?: () => void) => {
     onClosed?.();
-    return;
+    // return;
     if (interstitialAd.loaded) {
       onClosedCallbackRef.current = onClosed;
       interstitialAd.show();

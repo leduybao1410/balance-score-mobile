@@ -137,5 +137,7 @@
   "confirmResetConfigTitle": "Xác nhận khôi phục mặc định",
   "confirmResetConfigMessage": "Bạn có chắc chắn muốn khôi phục mặc định không?",
   "confirmDeleteGameTitle": "Xác nhận xóa trận đấu",
-  "confirmDeleteGameMessage": "Bạn có chắc chắn muốn xóa trận đấu này không?"
+  "confirmDeleteGameMessage": "Bạn có chắc chắn muốn xóa trận đấu này không?",
+  "confirmExitTitle": "Xác nhận thoát",
+  "confirmExitMessage": "Bạn có chắc chắn muốn thoát khỏi trận đấu không?"
 }

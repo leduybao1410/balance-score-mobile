@@ -12,6 +12,7 @@ import { useInterstitialAd } from '@/context/interstitial-ad-context';
 import { folderHelpers } from '@/libs/helpers/folder-helpers';
 import LanguageSelector from '@/component/languageSelector';
 import { useLanguage } from '@/hooks/useLanguage';
+import { usePreventDoublePress } from '@/hooks/usePreventDoublePress';
 
 const screen = Dimensions.get('window');
 
@@ -22,19 +23,23 @@ export default function HomeScreen() {
   const { t } = useLanguage();
 
 
+
   const handleStartNow = () => {
-    showAd(async () => {
-      // Navigate to game screen after ad is closed
-      const folderName = folderHelpers.generateFolderName();
-      await folderHelpers.initFolder(folderName);
+    showAd();
+    // Navigate to game screen after ad is closed
+    const folderName = folderHelpers.generateFolderName();
+    folderHelpers.initFolder(folderName).then(() => {
       router.push({
         pathname: '/game',
         params: {
           folderName,
         },
       });
-    });
+    })
+
   };
+
+  const onStartNowPress = usePreventDoublePress(handleStartNow, 1000)
 
   return (
     <>
@@ -62,7 +67,7 @@ export default function HomeScreen() {
           alignItems='stretch' styles={styles.menuContainer}>
           <MenuCardBtn
             title={t('startNow')}
-            onPress={handleStartNow}
+            onPress={() => onStartNowPress?.()}
             containerStyle={styles.menuItemContainer}
             backgroundColor={colors.green[700]}
             textColor={colors.white}
