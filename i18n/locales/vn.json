@@ -122,6 +122,7 @@
   "confirmConnectionMessage": "Bạn có muốn kết nối với thiết bị khách không?",
   "noMemorizationRequired": "Không cần ghi nhớ",
   "noExpertiseRequired": "Không cần kỹ năng",
+  "noCalculationRequired": "Không cần tính toán",
   "justPlay": "Chỉ việc chơi",
   "currentMode": "Chế độ hiện tại",
   "free": "Tự do",
@@ -139,5 +140,10 @@
   "confirmDeleteGameTitle": "Xác nhận xóa trận đấu",
   "confirmDeleteGameMessage": "Bạn có chắc chắn muốn xóa trận đấu này không?",
   "confirmExitTitle": "Xác nhận thoát",
-  "confirmExitMessage": "Bạn có chắc chắn muốn thoát khỏi trận đấu không?"
+  "confirmExitMessage": "Bạn có chắc chắn muốn thoát khỏi trận đấu không?",
+  "zone": "Vùng",
+  "dropHere": "Thả vào đây",
+  "players": "Người chơi",
+  "changePlayerPositionTitle": "Đổi vị trí người chơi",
+  "hideAdsHere": "Ẩn quảng cáo ở đây"
 }

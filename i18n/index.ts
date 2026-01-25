@@ -31,6 +31,9 @@ const getInitialLanguage = async () => {
     const storedLang = await AsyncStorage.getItem(LANGUAGE_KEY);
     if (storedLang) {
       return storedLang;
+    } else {
+      await AsyncStorage.setItem(LANGUAGE_KEY, 'vn');
+      return 'vn';
     }
   } catch (e) {
     // ignore error, fallback to device locale

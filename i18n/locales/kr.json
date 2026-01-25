@@ -123,6 +123,7 @@
   "confirmConnectionMessage": "클라이언트와 연결하시겠습니까?",
   "noMemorizationRequired": "기억 필요 없음",
   "noExpertiseRequired": "기술 필요 없음",
+  "noCalculationRequired": "계산 필요 없음",
   "justPlay": "그냥 플레이",
   "currentMode": "현재 모드",
   "free": "자유",
@@ -140,5 +141,10 @@
   "confirmDeleteGameTitle": "게임 삭제 확인",
   "confirmDeleteGameMessage": "게임을 삭제하시겠습니까?",
   "confirmExitTitle": "종료 확인",
-  "confirmExitMessage": "게임을 종료하시겠습니까?"
+  "confirmExitMessage": "게임을 종료하시겠습니까?",
+  "zone": "영역",
+  "dropHere": "여기에 놓기",
+  "players": "플레이어",
+  "changePlayerPositionTitle": "플레이어 위치 변경",
+  "hideAdsHere": "광고 숨기기 여기"
 }

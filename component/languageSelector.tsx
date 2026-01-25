@@ -1,12 +1,12 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, ViewStyle } from 'react-native';
 import { useLanguage } from '../hooks/useLanguage';
 import { myFontStyle } from './responsive-text';
 import { colors } from '@/constant/colors';
 import CustomModal from './modal/modal';
 import { HorizontalView } from './view';
 
-const LanguageSelector: React.FC = () => {
+const LanguageSelector: React.FC<{ containerStyle?: ViewStyle }> = ({ containerStyle }) => {
   const { t, changeLanguage, currentLanguage } = useLanguage();
 
   const [open, setOpen] = useState(false);
@@ -25,7 +25,7 @@ const LanguageSelector: React.FC = () => {
   return (
     <>
       <TouchableOpacity
-        style={styles.container}
+        style={[styles.container, containerStyle]}
         onPress={() => setOpen(true)}>
         <HorizontalView>
           {currentLanguage && < Image
@@ -73,10 +73,6 @@ const LanguageSelector: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    padding: 8,
     backgroundColor: 'white',
     borderRadius: 100,
     shadowColor: '#000',

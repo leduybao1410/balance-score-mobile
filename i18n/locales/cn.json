@@ -124,6 +124,7 @@
   "confirmConnectionMessage": "你确定要连接到客户端吗？",
   "noMemorizationRequired": "无需记忆",
   "noExpertiseRequired": "无需专业技能",
+  "noCalculationRequired": "无需计算",
   "justPlay": "直接玩",
   "currentMode": "当前模式",
   "free": "自由",
@@ -141,5 +142,10 @@
   "confirmDeleteGameTitle": "确认删除游戏",
   "confirmDeleteGameMessage": "你确定要删除这个游戏吗？",
   "confirmExitTitle": "确认退出",
-  "confirmExitMessage": "你确定要退出游戏吗？"
+  "confirmExitMessage": "你确定要退出游戏吗？",
+  "zone": "区域",
+  "dropHere": "拖放到这里",
+  "players": "玩家",
+  "changePlayerPositionTitle": "更改玩家位置",
+  "hideAdsHere": "隐藏广告在这里"
 }

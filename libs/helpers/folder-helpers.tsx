@@ -86,6 +86,12 @@ const deleteAllGameFolder = async () => {
     });
 };
 
+const countGame = async () => {
+    const folderList = await getFolderList();
+    const gameFolderList = folderList.filter((folder) => folder.name.startsWith('Game_'));
+    return gameFolderList.length;
+}
+
 export const folderHelpers = {
     FOLDER_PATH,
     generateFolderName,
@@ -100,4 +106,5 @@ export const folderHelpers = {
     deleteAllFolder,
     deleteAllGameFolder,
     parseHistoryContent,
+    countGame,
 };

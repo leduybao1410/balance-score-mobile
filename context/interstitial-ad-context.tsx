@@ -1,48 +1,46 @@
-import React, { createContext, useContext, useEffect, useRef, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState, ReactNode, useCallback, useMemo, Dispatch, SetStateAction } from 'react';
 import { Platform } from 'react-native';
 import { InterstitialAd, AdEventType } from 'react-native-google-mobile-ads';
 import { ADS_ID } from '@/constant/ads-id';
 
-interface InterstitialAdContextType {
+export interface InterstitialAdContextType {
   showAd: (onClosed?: () => void) => void;
   isLoaded: boolean;
   loadAd: () => void;
 }
 
-const InterstitialAdContext = createContext<InterstitialAdContextType | undefined>(undefined);
+export const InterstitialAdContext = createContext<InterstitialAdContextType | undefined>(undefined);
 
 interface InterstitialAdProviderProps {
   children: ReactNode;
 }
 
 export function InterstitialAdProvider({ children }: InterstitialAdProviderProps) {
+
   const interstitialAdUnitId = Platform.OS === 'ios' ? ADS_ID.interstitial.ios : ADS_ID.interstitial.android;
+
   const [isLoaded, setIsLoaded] = useState(false);
   const onClosedCallbackRef = useRef<(() => void) | undefined>(undefined);
 
-  const interstitialAd = useRef(
-    InterstitialAd.createForAdRequest(interstitialAdUnitId, {
-      requestNonPersonalizedAdsOnly: true,
-    })
-  ).current;
+  const interstitialAd = useRef(InterstitialAd.createForAdRequest(interstitialAdUnitId)).current;
 
   const loadAd = () => {
     interstitialAd.load();
   };
 
-  const showAd = (onClosed?: () => void) => {
+  const showAd = useCallback((onClosed?: () => void) => {
     onClosed?.();
     // return;
     if (interstitialAd.loaded) {
       onClosedCallbackRef.current = onClosed;
-      interstitialAd.show();
+      // interstitialAd.show();
     } else {
       // If ad is not loaded yet, execute callback immediately
       if (onClosed) {
         onClosed();
       }
     }
-  };
+  }, []);
 
   useEffect(() => {
     // Load the interstitial ad when component mounts

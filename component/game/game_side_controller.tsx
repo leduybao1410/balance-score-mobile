@@ -54,7 +54,7 @@ export default function SideController({ gameState }
 
     // Memoize font sizes to avoid recalculating on every render
     const buttonFontSize = useMemo(
-        () => isLandscape ? ResponsiveFontSize(14) : ResponsiveFontSize(36),
+        () => isLandscape ? ResponsiveFontSize(24) : ResponsiveFontSize(36),
         [isLandscape]
     );
 

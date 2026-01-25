@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Modal,
   View,
@@ -8,6 +8,9 @@ import {
   StyleProp,
   ViewStyle,
   TextStyle,
+  useWindowDimensions,
+  ScrollView,
+  Keyboard,
 } from 'react-native';
 import { HorizontalLine } from '@/component/line/line';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -41,18 +44,49 @@ const CustomModal = ({
   dividerColor = colors['dark-grey'][300],
   dividerThickness = 1,
 }: CustomModalProps) => {
+  const { width, height } = useWindowDimensions();
+  const isLandscape = width > height;
+  const [orientation, setOrientation] = useState(isLandscape ? 'landscape' : 'portrait');
+
+  // Update orientation state when dimensions change
+  useEffect(() => {
+    setOrientation(isLandscape ? 'landscape' : 'portrait');
+  }, [isLandscape]);
+
+  // Subscribe to keyboard visible change
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
+      setKeyboardVisible(true);
+    });
+    const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardVisible(false);
+    });
+
+    return () => {
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
+    };
+  }, []);
+
+
+
   return (
     <Modal
+      key={orientation}
       visible={open}
       transparent
       animationType="fade"
       presentationStyle="overFullScreen"
       onRequestClose={() => setOpen(false)}
-      statusBarTranslucent={true}>
+      statusBarTranslucent={true}
+      supportedOrientations={['portrait', 'landscape', 'landscape-left', 'landscape-right', 'portrait-upside-down']}>
       <TouchableWithoutFeedback onPress={() => setOpen(false)}>
         <View style={[styles.overlay, overlayStyle]} />
       </TouchableWithoutFeedback>
-      <View style={styles.centeredView} pointerEvents="box-none">
+      <View style={[styles.centeredView, { justifyContent: keyboardVisible ? 'flex-start' : 'center' }]} pointerEvents="box-none">
+
         <View style={[styles.modalView, modalStyle]}>
           {showTitle && <Text style={[styles.title, titleStyle]}>{title}</Text>}
           {showTitle && <HorizontalLine thickness={dividerThickness} color={dividerColor} />}
@@ -66,7 +100,7 @@ const CustomModal = ({
           <View style={styles.content}>{children}</View>
         </View>
       </View>
-    </Modal>
+    </Modal >
   );
 };
 
@@ -80,7 +114,6 @@ const styles = StyleSheet.create({
   },
   centeredView: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
   },
   glassOverlay: {

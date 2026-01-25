@@ -1,5 +1,5 @@
-import React, { useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Modal, useWindowDimensions, Platform } from 'react-native';
+import React, { useRef, useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Modal, useWindowDimensions, Platform, ScrollView } from 'react-native';
 import { gameMode } from "./game_side_controller";
 import { colors } from '@/constant/colors';
 import { ResponsiveFontSize } from '../responsive-text';
@@ -27,6 +27,12 @@ const GameMenu = (
 ) => {
     const { width, height } = useWindowDimensions();
     const isLandscape = width > height;
+    const [orientation, setOrientation] = useState(isLandscape ? 'landscape' : 'portrait');
+
+    // Update orientation state when dimensions change
+    useEffect(() => {
+        setOrientation(isLandscape ? 'landscape' : 'portrait');
+    }, [isLandscape]);
 
     const { showAd } = useInterstitialAd();
 
@@ -65,11 +71,13 @@ const GameMenu = (
 
     return (
         <>
-            < Modal
+            <Modal
+                key={orientation}
                 visible={isOpen}
                 transparent={true}
                 animationType="slide"
                 onRequestClose={() => setIsOpen(false)}
+                supportedOrientations={['portrait', 'landscape', 'landscape-left', 'landscape-right', 'portrait-upside-down']}
             >
 
                 <TouchableOpacity
@@ -77,17 +85,24 @@ const GameMenu = (
                     activeOpacity={1}
                     onPress={() => setIsOpen(false)}
                 >
-                    <View style={[
-                        styles.menuContainer,
-                        {
-                            width: isLandscape ? width * 0.3 : 208,
-                            maxWidth: isLandscape ? width * 0.4 : 300,
-                        }
-                    ]}>
-                        <View style={styles.content}>
-                            <LanguageSelector />
-                            <View style={styles.modeContainer}>
 
+                    <ScrollView
+                        contentContainerStyle={styles.menuContainer}
+                        style={[
+                            {
+                                position: 'absolute',
+                                top: 0,
+                                right: 0,
+                                bottom: 0,
+                                height: '100%',
+                                width: isLandscape ? width * 0.3 : 208,
+                                maxWidth: isLandscape ? width * 0.4 : 300,
+                            }
+                        ]}>
+                        <View style={styles.content}>
+
+                            <View style={styles.modeContainer}>
+                                <LanguageSelector containerStyle={styles.languageContainer} />
                                 <Text style={styles.modeTitle}>{t('currentMode')}</Text>
                                 <View style={styles.pickerContainer}>
                                     {gameMode.map((item) => (
@@ -110,6 +125,7 @@ const GameMenu = (
                                 </View>
                             </View>
                             <View style={styles.listContainer}>
+
                                 {list.map((item) => (
                                     <Button
                                         key={item.name}
@@ -121,7 +137,7 @@ const GameMenu = (
                                 ))}
                             </View>
                         </View>
-                    </View>
+                    </ScrollView>
                 </TouchableOpacity>
             </Modal >
             <ConfirmPopup
@@ -151,22 +167,21 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(0, 0, 0, 0.4)',
     },
     menuContainer: {
-        position: 'absolute',
-        top: 0,
-        right: 0,
-        height: '100%',
+        flex: 1,
         backgroundColor: colors.white,
         padding: 8,
     },
     content: {
         flex: 1,
+        height: '100%',
+        alignSelf: 'center',
         justifyContent: 'center',
         gap: 8,
     },
     modeContainer: {
         flexDirection: 'column',
         padding: 8,
-        paddingVertical: 16,
+        paddingVertical: 24,
         gap: 8,
         backgroundColor: colors['light-grey'][200],
         borderRadius: 8,
@@ -176,6 +191,10 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         fontSize: ResponsiveFontSize(14),
         color: colors['dark-grey'][900],
+    },
+    languageContainer: {
+        alignSelf: 'center',
+        padding: 8
     },
     pickerContainer: {
         flexDirection: 'column',

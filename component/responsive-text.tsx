@@ -3,9 +3,12 @@ import { Dimensions, StyleSheet } from 'react-native';
 // Base width for scaling (iPhone 6/7/8)
 const BASE_WIDTH = 375;
 
+// Landscape scale factor for mobile phones (reduces font size in landscape)
+const MOBILE_LANDSCAPE_SCALE = 0.85;
+
 /**
  * Compute a scaled font size based on the screen width, with extra
- * multipliers for common tablet sizes (7" and 10").
+ * multipliers for common tablet sizes (7" and 10") and mobile landscape.
  *
  * Heuristic:
  * - We estimate the screen diagonal in inches by using the logical
@@ -14,25 +17,41 @@ const BASE_WIDTH = 375;
  *   computing diagonal in inches using the 160 dpi baseline, so we
  *   can approximate inches as sqrt(w^2 + h^2) / 160.
  * - If diagonal >= 9" we treat as ~10" tablet, if >= 6.5" treat as ~7" tablet.
+ * - For mobile landscape: use the shorter dimension (portrait width) as base
+ *   to maintain consistent font sizes across orientations.
  */
 const scaleFont = (size: number, width: number, height: number) => {
-  // Base scale from width (keeps current behaviour for phones)
-  let scale = width / BASE_WIDTH;
-
   // Detect tablet reliably using smallest dimension in dp (common Android/iOS breakpoint)
   // Many implementations treat devices with smallest width >= 600dp as tablets.
   const minDimension = Math.min(width, height);
+  const isLandscape = width > height;
+  const isTablet = minDimension >= 600;
 
-  if (minDimension >= 1000) {
-    scale *= 0.55;
-  } else if (minDimension >= 800) {
-    // large tablet (e.g., full-size iPad) — use stronger scaling
-    scale *= 0.5;
-  } else if (minDimension >= 600) {
-    // small tablet / 7"-class devices
-    scale *= 0.5;
+  let scale: number;
+
+  if (isTablet) {
+    // Tablet scaling: use current width as base
+    scale = width / BASE_WIDTH;
+
+    if (minDimension >= 1000) {
+      scale *= 0.55;
+    } else if (minDimension >= 800) {
+      // large tablet (e.g., full-size iPad) — use stronger scaling
+      scale *= 0.5;
+    } else {
+      // small tablet / 7"-class devices
+      scale *= 0.5;
+    }
+  } else if (isLandscape) {
+    // Mobile landscape: use the shorter dimension (portrait width) as base
+    // This keeps fonts consistent with portrait mode, slightly reduced for landscape readability
+    scale = minDimension / BASE_WIDTH;
+    scale *= MOBILE_LANDSCAPE_SCALE;
   } else {
-    // Fallback: keep previous diagonal heuristic if you want extra safety
+    // Mobile portrait: base scale from width (original behaviour)
+    scale = width / BASE_WIDTH;
+
+    // Fallback: diagonal heuristic for larger phones / phablets
     // diagonalInches ~= sqrt(width_dp^2 + height_dp^2) / 160
     const diagonalInches = Math.sqrt(width * width + height * height) / 160;
     if (diagonalInches >= 9) {

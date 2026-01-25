@@ -112,9 +112,6 @@ export default function HistoryScreen() {
             <BannerAd
                 unitId={bannerAd}
                 size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
-                requestOptions={{
-                    requestNonPersonalizedAdsOnly: true,
-                }}
             />
             <ConfirmPopup
                 visible={showClearAllConfirmPopup}

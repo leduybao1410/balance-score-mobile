@@ -1,5 +1,5 @@
-import React, { Fragment, memo, useCallback } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableWithoutFeedback } from 'react-native';
+import React, { Fragment, memo, useCallback, useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Modal, TouchableWithoutFeedback, useWindowDimensions } from 'react-native';
 import { myFontStyle } from '@/component/responsive-text';
 import { colors } from '@/constant/colors';
 import { HorizontalView, VerticalView } from '@/component/view';
@@ -32,6 +32,15 @@ const ConfirmPopup = memo(function ConfirmPopup({
     customContent,
     loadingConfirm = false,
 }: ConfirmPopupProps) {
+    const { width, height } = useWindowDimensions();
+    const isLandscape = width > height;
+    const [orientation, setOrientation] = useState(isLandscape ? 'landscape' : 'portrait');
+
+    // Update orientation state when dimensions change
+    useEffect(() => {
+        setOrientation(isLandscape ? 'landscape' : 'portrait');
+    }, [isLandscape]);
+
     const handleClose = useCallback(() => {
         onClose?.();
     }, [onClose]);
@@ -47,11 +56,13 @@ const ConfirmPopup = memo(function ConfirmPopup({
     return (
         <Fragment>
             <Modal
+                key={orientation}
                 visible={visible}
                 transparent
                 animationType="none"
                 onRequestClose={handleClose}
                 statusBarTranslucent
+                supportedOrientations={['portrait', 'landscape', 'landscape-left', 'landscape-right', 'portrait-upside-down']}
             >
                 <View style={styles.overlay}>
                     <TouchableWithoutFeedback onPress={handleClose}>

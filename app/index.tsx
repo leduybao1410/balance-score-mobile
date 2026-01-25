@@ -1,10 +1,10 @@
-import { Dimensions, Image, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, Image, Linking, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { MenuCardBtn } from '@/component/home/menu-card-btn';
-import { VerticalView } from '@/component/view';
+import { HorizontalView, VerticalView } from '@/component/view';
 import { colors } from '@/constant/colors';
 import { SubText } from '@/component/text/sub-text';
 import { myFontStyle, ResponsiveFontSize } from '@/component/responsive-text';
-import { router } from 'expo-router';
+import { Link, router } from 'expo-router';
 import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
 import { Platform } from 'react-native';
 import { ADS_ID } from '@/constant/ads-id';
@@ -13,6 +13,8 @@ import { folderHelpers } from '@/libs/helpers/folder-helpers';
 import LanguageSelector from '@/component/languageSelector';
 import { useLanguage } from '@/hooks/useLanguage';
 import { usePreventDoublePress } from '@/hooks/usePreventDoublePress';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { author } from '@/constant/about-author';
 
 const screen = Dimensions.get('window');
 
@@ -21,8 +23,6 @@ export const bannerAd = Platform.OS === 'ios' ? ADS_ID.banner.ios : ADS_ID.banne
 export default function HomeScreen() {
   const { showAd } = useInterstitialAd();
   const { t } = useLanguage();
-
-
 
   const handleStartNow = () => {
     showAd();
@@ -36,64 +36,74 @@ export default function HomeScreen() {
         },
       });
     })
-
   };
 
   const onStartNowPress = usePreventDoublePress(handleStartNow, 1000)
 
   return (
     <>
-      <VerticalView
-        gap={20}
-        alignItems='center'
-        justifyContent='center'
-        styles={styles.container} >
+      <ScrollView
+        contentContainerStyle={{
+          flexGrow: 1,
+          backgroundColor: colors.white
+        }}
+        style={{ flex: 1, backgroundColor: colors.black }}
+        keyboardDismissMode='interactive'
+        automaticallyAdjustKeyboardInsets
+      >
+        <VerticalView
+          gap={20}
+          alignItems='center'
+          justifyContent='center'
+          styles={styles.container} >
 
-        <Logo />
-        <VerticalView gap={0}>
-          <Text style={styles.title} >Balance Score Board</Text>
-          <SubText style={styles.subtitle}>
-            {t('noMemorizationRequired')}
-          </SubText>
-          <SubText style={styles.subtitle}>
-            {t('noExpertiseRequired')}
-          </SubText>
-          <SubText style={styles.subtitle}>
-            {t('justPlay')}
-          </SubText>
+          <Logo />
+          <VerticalView gap={0}>
+            <Text style={styles.title} >Balance Score Board</Text>
+            <SubText style={styles.subtitle}>
+              {t('noMemorizationRequired')}
+            </SubText>
+            <SubText style={styles.subtitle}>
+              {t('noCalculationRequired')}
+            </SubText>
+            <SubText style={styles.subtitle}>
+              {t('justPlay')}
+            </SubText>
+          </VerticalView>
+          <VerticalView gap={10}
+            justifyContent='flex-start'
+            alignItems='stretch' styles={styles.menuContainer}>
+            <MenuCardBtn
+              title={t('startNow')}
+              onPress={() => onStartNowPress?.()}
+              containerStyle={styles.menuItemContainer}
+              backgroundColor={colors.green[700]}
+              textColor={colors.white}
+            />
+            <MenuCardBtn
+              containerStyle={styles.menuItemContainer}
+              title={t('history')}
+              onPress={() => { router.push('/history') }}
+            />
+            <MenuCardBtn
+              title={t('settings')}
+              onPress={() => { router.push('/setting') }}
+              backgroundColor={colors['dark-grey'][300]}
+              textColor={colors['dark-grey'][800]}
+            />
+          </VerticalView>
+          <HorizontalView alignItems='center' >
+            <Link style={styles.aboutAuthorLink} href={author.url}>
+              <Text style={styles.aboutAuthorText}>@leduybao.io.vn</Text>
+            </Link>
+          </HorizontalView>
         </VerticalView>
-        <VerticalView gap={10}
-          justifyContent='flex-start'
-          alignItems='stretch' styles={styles.menuContainer}>
-          <MenuCardBtn
-            title={t('startNow')}
-            onPress={() => onStartNowPress?.()}
-            containerStyle={styles.menuItemContainer}
-            backgroundColor={colors.green[700]}
-            textColor={colors.white}
-          />
-          <MenuCardBtn
-            containerStyle={styles.menuItemContainer}
-            title={t('history')}
-            onPress={() => { router.push('/history') }}
-          />
-          <MenuCardBtn
-            title={t('settings')}
-            onPress={() => { router.push('/setting') }}
-            backgroundColor={colors['dark-grey'][300]}
-            textColor={colors['dark-grey'][800]}
-          />
-
-        </VerticalView>
-      </VerticalView>
+      </ScrollView >
       <BannerAd
         unitId={bannerAd}
         size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
-        requestOptions={{
-          requestNonPersonalizedAdsOnly: true,
-        }}
       />
-      <LanguageSelector />
+      <LanguageSelector containerStyle={{ position: 'absolute', top: 10, right: 10, padding: 8 }} />
     </>
   );
 }
@@ -138,5 +148,18 @@ const styles = StyleSheet.create({
   },
   menuContainer: {
     flexShrink: 1,
+  },
+  aboutAuthorLink: {
+    color: colors['dark-grey'][900],
+    textDecorationLine: 'underline',
+    backgroundColor: colors['dark-grey'][300],
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 100,
+    textAlign: 'center',
+  },
+  aboutAuthorText: {
+    ...myFontStyle.small,
+    fontWeight: 'bold',
   },
 });

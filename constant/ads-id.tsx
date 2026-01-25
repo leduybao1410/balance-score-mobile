@@ -9,7 +9,6 @@ const ANDROID_BANNER_AD_UNIT_ID = "ca-app-pub-3488842401803401/4493707291";
 const IOS_INTERSTITIAL_AD_UNIT_ID = "ca-app-pub-3488842401803401/4559294089"; // TODO: Replace with actual iOS Interstitial Ad Unit ID
 const ANDROID_INTERSTITIAL_AD_UNIT_ID = "ca-app-pub-3488842401803401/2773431516"; // TODO: Replace with actual Android Interstitial Ad Unit ID
 
-
 export const ADS_ID = {
     banner: {
         android: ANDROID_BANNER_AD_UNIT_ID,

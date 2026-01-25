@@ -1,13 +1,14 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Modal, TextInput, useWindowDimensions, Alert, } from 'react-native';
 import { playerListItem } from "./game_data";
 import { MaterialIcons, FontAwesome, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
 import { gameMode } from "./game_side_controller";
 import { colors } from '@/constant/colors';
-import { ResponsiveFontSize } from '../responsive-text';
+import { myFontStyle, ResponsiveFontSize } from '../responsive-text';
 import { Button } from '../button/button';
 import { GameState, useGameState } from '@/hooks/useGameState';
 import { t } from 'i18next';
+import ChangeNamePopup from './game_popup_change_name';
 
 // Helper function to convert Tailwind color classes to React Native color values
 function getColorFromTailwindClass(colorClass: string, type: 'bg' | 'text' = 'bg'): string {
@@ -55,10 +56,9 @@ export default function PlayerList(
     const { setCurrentPool, setSelectedId, setIsSwapPlayerOpen, setSelectedMode, setSelectedHost } = gameState;
 
     const { width, height } = useWindowDimensions();
-    const isLandscape = width > height;
+    const isLandscape = useMemo(() => width > height, [width, height]);
     const [showNameInput, setShowNameInput] = useState(false);
     const [editingPlayerId, setEditingPlayerId] = useState<number | null>(null);
-    const [newPlayerName, setNewPlayerName] = useState('');
     const editingPlayerName = useMemo(() => {
         return editingPlayerId && list?.find(p => p.id === editingPlayerId)?.name;
     }, [editingPlayerId, list]);
@@ -77,11 +77,10 @@ export default function PlayerList(
         const playerIndex = list?.findIndex(player => player.id == playerId);
         if (playerIndex === undefined || playerIndex === -1) return;
         setEditingPlayerId(playerId);
-        setNewPlayerName(list![playerIndex].name);
         setShowNameInput(true);
     }
 
-    function handleSaveName() {
+    function handleSaveName(newPlayerName: string) {
         if (!list || editingPlayerId === null || !newPlayerName.trim()) {
             Alert.alert('Lỗi', 'Vui lòng nhập tên hợp lệ');
             return;
@@ -92,14 +91,13 @@ export default function PlayerList(
         newList[playerIndex].name = newPlayerName.trim();
         setShowNameInput(false);
         setEditingPlayerId(null);
-        setNewPlayerName('');
         // Note: We're not calling setList here as it's passed as a prop
         // The parent component should handle the list update
     }
 
     const isHostMode = useMemo(() => selectedMode === 'with-host', [selectedMode]);
 
-    function PlayerItem({ playerId }: { playerId: number }) {
+    const PlayerItem = useCallback(({ playerId }: { playerId: number }) => {
         if (list == null) return null;
 
         const player: playerListItem | undefined = list.find(player => player.id == playerId);
@@ -112,7 +110,7 @@ export default function PlayerList(
         return (
             <TouchableOpacity
                 key={player.id}
-                style={[styles.playerCard, { backgroundColor, flexBasis: isLandscape ? '31%' : '47%' }]}
+                style={[styles.playerCard, { backgroundColor, flexBasis: (isLandscape || width > 800) ? '31%' : '47%' }]}
                 onPress={() => setSelectedId(player.id)}
                 activeOpacity={0.8}
             >
@@ -128,7 +126,7 @@ export default function PlayerList(
                             onPress={() => hidePlayer(player.id)}
                             activeOpacity={0.7}
                         >
-                            <MaterialCommunityIcons name="eye-off" size={ResponsiveFontSize(20)} color={colors['dark-grey'][700]} />
+                            <MaterialCommunityIcons name="eye-off" size={ResponsiveFontSize(16)} color={colors['dark-grey'][700]} />
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={styles.swapButton}
@@ -138,7 +136,7 @@ export default function PlayerList(
                             <MaterialIcons name="swap-horiz" size={ResponsiveFontSize(20)} color={textColor} />
                         </TouchableOpacity>
                         <TouchableOpacity
-                            style={[styles.editButton, { borderRadius: isLandscape ? ResponsiveFontSize(12) : ResponsiveFontSize(25) }]}
+                            style={[styles.editButton, { borderRadius: ResponsiveFontSize(10) }]}
                             onPress={() => changeName(player.id)}
                             activeOpacity={0.7}
                         >
@@ -147,7 +145,12 @@ export default function PlayerList(
 
                         {!isHostMode ? (
                             <View style={styles.editLabel}>
-                                <Text style={[styles.editLabelText, { color: textColor, fontSize: isLandscape ? ResponsiveFontSize(14) : ResponsiveFontSize(20) }]}>Edit</Text>
+                                <Text style={[styles.editLabelText, {
+                                    color: textColor,
+                                    ...myFontStyle.small
+                                }]}>
+                                    Edit
+                                </Text>
                             </View>
                         ) : (
                             isHostMode && selectedHost === player.id ? (
@@ -156,6 +159,7 @@ export default function PlayerList(
                                     onClick={() => setSelectedHost(null)}
                                     style={[styles.hostButton, { backgroundColor: colors.white }]}
                                     textColor={textColor}
+                                    textStyle={{ ...myFontStyle.small }}
                                     fontSize={ResponsiveFontSize(20)}
                                 />
                             ) : (
@@ -164,6 +168,7 @@ export default function PlayerList(
                                     onClick={() => setSelectedHost(player.id)}
                                     style={[styles.hostButton, { backgroundColor: colors.white }]}
                                     textColor={textColor}
+                                    textStyle={{ ...myFontStyle.small }}
                                     fontSize={ResponsiveFontSize(20)}
                                 />
                             )
@@ -172,7 +177,7 @@ export default function PlayerList(
                 )}
             </TouchableOpacity>
         )
-    }
+    }, [list, selectedId, selectedHost, isLandscape]);
 
     return (
         <>
@@ -184,52 +189,18 @@ export default function PlayerList(
             >
                 {(currentPool) && currentPool.map(playerId => (<PlayerItem key={playerId} playerId={playerId} />))}
             </ScrollView>
-            <Modal
-                visible={showNameInput}
-                transparent={true}
-                animationType="fade"
-                onRequestClose={() => {
-                    setShowNameInput(false);
-                    setEditingPlayerId(null);
-                    setNewPlayerName('');
-                }}
-            >
-                <View style={styles.nameInputOverlay}>
-                    <View style={[styles.nameInputContainer, { width: isLandscape ? width * 0.4 : width * 0.8 }]}>
-                        <Text style={styles.nameInputTitle}>
-                            {t('enterNewNameFor', { name: editingPlayerName })}
-                        </Text>
-                        <TextInput
-                            style={styles.nameInput}
-                            value={newPlayerName}
-                            onChangeText={setNewPlayerName}
-                            placeholder={t('playerName')}
-                            autoFocus
-                        />
-                        <View style={styles.nameInputButtons}>
-                            <Button
-                                title={t('cancel')}
-                                onClick={() => {
-                                    setShowNameInput(false);
-                                    setEditingPlayerId(null);
-                                    setNewPlayerName('');
-                                }}
-                                variant="outline"
-                                style={styles.nameInputCancelButton}
-                            />
-                            <Button
-                                title={t('save')}
-                                onClick={handleSaveName}
-                                style={styles.nameInputSaveButton}
-                                textColor={colors.white}
-                            />
-                        </View>
-                    </View>
-                </View>
-            </Modal>
+            <ChangeNamePopup
+                setEditingPlayerId={setEditingPlayerId}
+                open={showNameInput}
+                setOpen={setShowNameInput}
+                playerName={editingPlayerName || ''}
+                handleSaveName={handleSaveName}
+            />
         </>
     );
 }
+
+
 
 const styles = StyleSheet.create({
     container: {
@@ -273,8 +244,8 @@ const styles = StyleSheet.create({
         right: 16,
         backgroundColor: colors['light-grey'][100],
         borderRadius: ResponsiveFontSize(20),
-        width: ResponsiveFontSize(32),
-        height: ResponsiveFontSize(32),
+        width: ResponsiveFontSize(20),
+        height: ResponsiveFontSize(20),
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -284,8 +255,8 @@ const styles = StyleSheet.create({
         left: 16,
         backgroundColor: colors.white,
         borderRadius: ResponsiveFontSize(25),
-        width: ResponsiveFontSize(40),
-        height: ResponsiveFontSize(40),
+        width: ResponsiveFontSize(20),
+        height: ResponsiveFontSize(20),
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -293,8 +264,8 @@ const styles = StyleSheet.create({
         position: 'absolute',
         top: 10,
         right: 10,
-        width: ResponsiveFontSize(40),
-        height: ResponsiveFontSize(40),
+        width: ResponsiveFontSize(20),
+        height: ResponsiveFontSize(20),
         justifyContent: 'center',
         alignItems: 'center',
     },

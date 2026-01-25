@@ -1,8 +1,9 @@
-import { myFontStyle } from "@/component/responsive-text";
+import { myFontStyle, ResponsiveFontSize } from "@/component/responsive-text";
 import { HorizontalView, VerticalView } from "@/component/view";
 import { colors } from "@/constant/colors";
 import { History, HistoryItem } from "@/hooks/useGameHistory";
 import { GameState } from "@/hooks/useGameState";
+import { FontAwesome5 } from "@expo/vector-icons";
 import { t } from "i18next";
 import { Dimensions, FlatList, ScrollView, StyleSheet, Text, TextStyle, View, ViewStyle } from "react-native";
 
@@ -91,10 +92,11 @@ function Row({
 }: {
     row: number | string,
     mode: string,
-    data: { id: number, point: number | string }[],
+    data: { id: number, point: number | string, host?: boolean }[],
     rowStyle?: ViewStyle,
     slotTextStyle?: TextStyle,
 }) {
+
     return <HorizontalView
         gap={0}
         justifyContent="flex-start"
@@ -107,14 +109,33 @@ function Row({
             <Text style={[styles.slotText, slotTextStyle]}>{mode}</Text>
         </View>
         {data.map((item) => <View style={styles.slot} key={`id${item.id}-p${item.point}`}>
+            {item.host && < View style={styles.crownIconContainer}>
+                <FontAwesome5 name="crown" size={ResponsiveFontSize(8)} color={colors.white} style={styles.crownIcon} />
+            </View>}
             <Text style={[styles.slotText, slotTextStyle]}>{item.point}</Text>
-        </View>)}
-    </HorizontalView>
+        </View>)
+        }
+    </HorizontalView >
 }
 
 
 
 const styles = StyleSheet.create({
+    crownIconContainer: {
+        width: 14,
+        height: 14,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        position: 'absolute',
+        top: 2,
+        right: 2,
+        backgroundColor: colors.red[700],
+        borderRadius: 100,
+    },
+    crownIcon: {
+
+    },
     slot: {
         display: 'flex',
         justifyContent: 'center',

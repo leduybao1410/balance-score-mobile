@@ -25,8 +25,8 @@ function BalanceContainer({ showMenu, summary, balanceScore }: { balanceScore: n
                 styles.balanceIcon,
                 {
                     backgroundColor: isBalanced ? colors.green[500] : colors.red[500],
-                    width: isLandscape ? ResponsiveFontSize(16) : ResponsiveFontSize(40),
-                    height: isLandscape ? ResponsiveFontSize(16) : ResponsiveFontSize(40),
+                    width: isLandscape ? ResponsiveFontSize(32) : ResponsiveFontSize(40),
+                    height: isLandscape ? ResponsiveFontSize(32) : ResponsiveFontSize(40),
                     borderRadius: isLandscape ? ResponsiveFontSize(20) : ResponsiveFontSize(40) / 2,
                 }
             ]}>
@@ -59,8 +59,8 @@ function BalanceContainer({ showMenu, summary, balanceScore }: { balanceScore: n
                     <Text style={[
                         styles.balanceScore,
                         {
-                            fontSize: isLandscape ? ResponsiveFontSize(24) : ResponsiveFontSize(60),
-                            lineHeight: isLandscape ? ResponsiveFontSize(24) : ResponsiveFontSize(60),
+                            fontSize: isLandscape ? ResponsiveFontSize(32) : ResponsiveFontSize(60),
+                            lineHeight: isLandscape ? ResponsiveFontSize(32) : ResponsiveFontSize(60),
                         }
                     ]}>{balanceScore}</Text>
                     {isBalanced ? renderBalanceBtn(true) : renderBalanceBtn(false)}
@@ -70,12 +70,12 @@ function BalanceContainer({ showMenu, summary, balanceScore }: { balanceScore: n
                 <MenuBtn
                     bgColor="bg-green-500"
                     func={summary}
-                    icon={<MaterialIcons name="check" size={isLandscape ? ResponsiveFontSize(14) : ResponsiveFontSize(24)} color={colors.white} />}
+                    icon={<MaterialIcons name="check" size={isLandscape ? ResponsiveFontSize(24) : ResponsiveFontSize(24)} color={colors.white} />}
                 />
                 <MenuBtn
                     bgColor="bg-gray-500"
                     func={showMenu}
-                    icon={<MaterialIcons name="menu" size={isLandscape ? ResponsiveFontSize(14) : ResponsiveFontSize(24)} color={colors.white} />}
+                    icon={<MaterialIcons name="menu" size={isLandscape ? ResponsiveFontSize(24) : ResponsiveFontSize(24)} color={colors.white} />}
                 />
             </View>
         </View>

@@ -6,14 +6,15 @@ import { myFontStyle } from "@/component/responsive-text";
 import { HorizontalView, VerticalView } from "@/component/view";
 import { colors } from "@/constant/colors";
 import { t } from "i18next";
-import { useCallback, useEffect, useState } from "react";
-import { Dimensions, FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Alert, Dimensions, FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import RNFS from 'react-native-fs';
 import { BannerAd, BannerAdSize } from "react-native-google-mobile-ads";
 import { bannerAd } from "../index";
 import ConfirmPopup from "@/component/popup/confirm-popup";
 import { Toast } from "toastify-react-native";
 import { useFocusEffect } from "expo-router";
+import ConfigPlayerPosition from "@/component/dnd/dragable-config-player-position";
 
 export const configFilePath = RNFS.DocumentDirectoryPath + '/config.json';
 
@@ -44,17 +45,27 @@ export const getConfigData = async (): Promise<playerListItem[]> => {
 export default function SettingScreen() {
     const [data, setData] = useState<playerListItem[]>([])
     const [selectedItem, setSelectedItem] = useState<playerListItem | null>(null)
+    const [modalType, setModalType] = useState<'edit' | 'add'>('edit')
 
-    useFocusEffect(useCallback(() => {
+    const loadConfigData = useCallback(() => {
         getConfigData().then((data) => {
             setData(data || []);
         });
-    }, []))
+    }, []);
 
+    // Load data on mount (for fast refresh)
+    useEffect(() => {
+        loadConfigData();
+    }, [loadConfigData]);
+
+    // Reload data when screen is focused
+    useFocusEffect(useCallback(() => {
+        loadConfigData();
+    }, [loadConfigData]))
 
     const renderItem = useCallback(({ item }: { item: playerListItem }) => {
-        return (<PlayerItemCard item={item} onPress={() => setSelectedItem(item)} />)
-    }, [data])
+        return (<PlayerItemCard key={`player-item-${item.id}`} item={item} onPress={() => setSelectedItem(item)} />)
+    }, [])
 
     const onDeletePlayer = useCallback((item: number) => {
         const newData = data.filter(player => player.id !== item);
@@ -65,10 +76,13 @@ export default function SettingScreen() {
         const formatedData = data.map((item, index) => ({ ...item, id: index + 1 }))
         RNFS.writeFile(configFilePath, JSON.stringify(formatedData)).then(() => {
             console.log('Config saved');
+            // Update state with formatted data to ensure fast refresh works
+            setData(formatedData);
+            Toast.success(t('configSaved'));
         }).catch((err) => {
             console.log(err);
+            Toast.error(t('configSaveError') || 'Failed to save config');
         });
-        Toast.success(t('configSaved'));
     }, [data])
 
     const [showConfirmResetConfig, setShowConfirmResetConfig] = useState(false);
@@ -76,40 +90,77 @@ export default function SettingScreen() {
     const onResetConfig = useCallback(() => {
         RNFS.writeFile(configFilePath, JSON.stringify(playerList)).then(() => {
             console.log('Config reset');
+            setData(playerList);
+            setShowConfirmResetConfig(false);
         }).catch((err) => {
             console.log(err);
-        }).finally(() => {
-            setShowConfirmResetConfig(false);
-            setData(playerList);
+            Toast.error(t('configResetError') || 'Failed to reset config');
         })
     }, [])
+
+    const [showConfigPlayerPosition, setShowConfigPlayerPosition] = useState(false);
+    const players = useMemo(() => {
+        return data.map((item) => ({
+            id: item.id,
+            title: item.name,
+        }));
+    }, [data]);
+
+    const onConfigChange = useCallback((saveConfig: number[]) => {
+        const newData = saveConfig.map((item) => {
+            const player = data.find((player) => player.id === item);
+            return player;
+        }).filter((player): player is playerListItem => player !== undefined);
+        setData(newData);
+        setShowConfigPlayerPosition(false);
+    }, [data])
+
 
     return (
         <>
             <VerticalView alignItems="stretch" styles={styles.container}>
-                <Text style={styles.title}>Config</Text>
+                <Text style={styles.title}>{t('players')}</Text>
                 <FlatList
-                    contentContainerStyle={{ gap: 8, }}
-                    columnWrapperStyle={{ gap: 8, justifyContent: 'space-between' }}
+                    contentContainerStyle={{ gap: 8, backgroundColor: colors.white, padding: 8, borderRadius: 12 }}
+                    columnWrapperStyle={{ gap: 8, justifyContent: 'flex-start' }}
                     numColumns={3}
                     data={data}
                     renderItem={renderItem}
+                    ListFooterComponent={<HorizontalView styles={{ borderTopWidth: 1, borderColor: colors['dark-grey'][300], paddingTop: 8 }}>
+                        <Button
+                            variant="outline"
+                            title={t('changePlayerPositionTitle')}
+                            onClick={() => setShowConfigPlayerPosition(true)}
+                            fullWidth={false}
+                        />
+                        {data.length < 9 && < Button
+                            title={t('addPlayer')}
+                            onClick={() => {
+                                setModalType('add');
+                            }}
+                            fullWidth={false}
+                        />}
+                    </HorizontalView>}
                 />
-                <HorizontalView gap={8}>
-                    <Button
-                        title={t('reset')}
-                        onClick={() => setShowConfirmResetConfig(true)}
-                        style={{ borderColor: colors.red[700] }}
-                        textColor={colors.red[700]}
-                        variant="outline"
-                        fullWidth={false}
-                    />
-                    <Button
-                        title={t('save')}
-                        onClick={onSaveConfig}
-                        fullWidth={false}
-                    />
-                </HorizontalView>
+
+                <VerticalView alignItems="stretch" gap={8}>
+
+                    <HorizontalView gap={8}>
+                        <Button
+                            title={t('reset')}
+                            onClick={() => setShowConfirmResetConfig(true)}
+                            style={{ borderColor: colors.red[700] }}
+                            textColor={colors.red[700]}
+                            variant="outline"
+                            fullWidth={false}
+                        />
+                        <Button
+                            title={t('save')}
+                            onClick={onSaveConfig}
+                            fullWidth={false}
+                        />
+                    </HorizontalView>
+                </VerticalView>
             </VerticalView>
             <ConfirmPopup
                 visible={showConfirmResetConfig}
@@ -121,14 +172,22 @@ export default function SettingScreen() {
             <BannerAd
                 unitId={bannerAd}
                 size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
-                requestOptions={{
-                    requestNonPersonalizedAdsOnly: true,
-                }}
             />
+            <ConfigPlayerPosition
+                open={showConfigPlayerPosition}
+                setOpen={setShowConfigPlayerPosition}
+                players={players ?? []}
+                onConfigChange={onConfigChange} />
             <EditPlayerModal
                 item={selectedItem}
-                open={selectedItem !== null}
-                setOpen={() => setSelectedItem(null)}
+                open={modalType === 'edit' ? selectedItem !== null : true}
+                setOpen={() => {
+                    if (modalType === 'edit') {
+                        setSelectedItem(null);
+                    } else {
+                        setModalType('edit');
+                    }
+                }}
                 onDeletePlayer={onDeletePlayer}
                 onSave={(value) => {
                     if (selectedItem) {
@@ -140,8 +199,11 @@ export default function SettingScreen() {
                             updatePlayer.textColor = value.textColor;
                         }
                         setData(newData);
-                        setSelectedItem(null);
+                    } else {
+                        setData([...data, value]);
+                        setModalType('edit');
                     }
+                    setSelectedItem(null);
                 }}
             />
         </>
@@ -153,7 +215,7 @@ type EditPlayerModalProps = {
     setOpen: (open: boolean) => void;
     item: playerListItem | null
     onSave: (item: playerListItem) => void
-    onDeletePlayer: (id: number) => void
+    onDeletePlayer: (id: number) => void,
 }
 
 const { width, height } = Dimensions.get('window');
@@ -174,7 +236,7 @@ const EditPlayerModal = ({
     }, [item])
 
     const renderItem = useCallback(({ item }: { item: string }) => {
-        return (<TouchableOpacity style={[styles.bgColorItemContainer]} className={`${item}`} onPress={() => setSelectedBgColor(item)}>
+        return (<TouchableOpacity key={`bg-color-${item}`} style={[styles.bgColorItemContainer]} className={`${item}`} onPress={() => setSelectedBgColor(item)}>
         </TouchableOpacity>)
     }, [])
 
@@ -188,51 +250,59 @@ const EditPlayerModal = ({
                 backgroundColor: colors.white,
                 width: width * 0.8,
                 maxWidth: width * 0.8,
-                // height: height * 0.8,
+                maxHeight: height * 0.8,
             }}
         >
-            <VerticalView
-                alignItems="stretch" gap={16}>
-                <View style={{ justifyContent: 'center', alignItems: 'center', padding: 8, borderRadius: 100 }}
-                    className={`${selectedBgColor}`}>
-                    <Text style={[styles.playerItemTitle, { color: colors.white }]}>{newName}</Text>
-                </View>
-                <Input
-                    value={newName}
-                    onChangeText={setNewName}
-                    placeholder="Enter new name"
-                    label={t('playerName')}
-                    labelClassName="text-dark-grey-800"
-                    containerStyle={{ backgroundColor: colors.white }}
-                />
-                <FlatList
-                    numColumns={4}
-                    data={bgColorList}
-                    contentContainerStyle={{ gap: 8, }}
-                    columnWrapperStyle={{ gap: 8, justifyContent: 'space-between' }}
-                    renderItem={renderItem}
-                />
-                <VerticalView gap={8}>
-                    <Button
-                        title={t('save')}
-                        onClick={() => onSave({
-                            name: newName,
-                            bgColor: selectedBgColor,
-                            textColor: 'text-dark-grey-800', id: item?.id ?? 0, point: 0, total: 0
-                        })}
+            <ScrollView
+                automaticallyAdjustKeyboardInsets
+            >
+                <VerticalView
+                    alignItems="stretch" gap={16} styles={{ flex: 1 }}>
+                    <View style={{ justifyContent: 'center', alignItems: 'center', padding: 8, borderRadius: 100 }}
+                        className={`${selectedBgColor}`}>
+                        <Text style={[styles.playerItemTitle, { color: colors.white }]}>{newName}</Text>
+                    </View>
+
+                    <Input
+                        value={newName}
+                        onChangeText={setNewName}
+                        placeholder="Enter new name"
+                        label={t('playerName')}
+                        labelClassName="text-dark-grey-800"
+                        containerStyle={{ backgroundColor: colors.white }}
                     />
-                    <Button
-                        title={t('delete')}
-                        onClick={() => {
-                            onDeletePlayer(item?.id ?? 0)
-                            setOpen(false)
-                        }}
-                        style={{ borderColor: colors.red[700] }}
-                        textColor={colors.red[700]}
-                        variant="outline"
+
+                    <FlatList
+                        scrollEnabled={false}
+                        key={width < height ? 'portrait' : 'landscape'}
+                        numColumns={width < height ? 4 : 6}
+                        data={bgColorList}
+                        contentContainerStyle={{ gap: 8, }}
+                        columnWrapperStyle={{ gap: 8, justifyContent: 'space-between' }}
+                        renderItem={renderItem}
                     />
+                    <VerticalView gap={8}>
+                        <Button
+                            title={t('save')}
+                            onClick={() => onSave({
+                                name: newName,
+                                bgColor: selectedBgColor,
+                                textColor: 'text-dark-grey-800', id: item?.id ?? 0, point: 0, total: 0
+                            })}
+                        />
+                        <Button
+                            title={t('delete')}
+                            onClick={() => {
+                                onDeletePlayer(item?.id ?? 0)
+                                setOpen(false)
+                            }}
+                            style={{ borderColor: colors.red[700] }}
+                            textColor={colors.red[700]}
+                            variant="outline"
+                        />
+                    </VerticalView>
                 </VerticalView>
-            </VerticalView>
+            </ScrollView>
         </CustomModal>
     )
 }

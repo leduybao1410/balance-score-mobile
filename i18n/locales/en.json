@@ -124,6 +124,7 @@
   "confirmConnectionMessage": "Are you sure you want to connect to the client?",
   "noMemorizationRequired": "No memorization required",
   "noExpertiseRequired": "No expertise required",
+  "noCalculationRequired": "No calculation required",
   "justPlay": "Just play",
   "currentMode": "Current Mode",
   "free": "Free",
@@ -141,5 +142,10 @@
   "confirmDeleteGameTitle": "Confirm Delete Game",
   "confirmDeleteGameMessage": "Do you want to delete this game?",
   "confirmExitTitle": "Confirm Exit",
-  "confirmExitMessage": "Do you want to exit the game?"
+  "confirmExitMessage": "Do you want to exit the game?",
+  "zone": "Zone",
+  "dropHere": "Drop here",
+  "players": "Players",
+  "changePlayerPositionTitle": "Change Player Position",
+  "hideAdsHere": "Hide Ads here"
 }

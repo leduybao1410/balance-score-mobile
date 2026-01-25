@@ -38,9 +38,6 @@ export default function HistoryDetailScreen() {
             <BannerAd
                 unitId={bannerAd}
                 size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
-                requestOptions={{
-                    requestNonPersonalizedAdsOnly: true,
-                }}
             />
         </>
     )
