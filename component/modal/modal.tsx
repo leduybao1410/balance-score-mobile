@@ -27,8 +27,10 @@ type CustomModalProps = {
   showCloseButton?: boolean;
   modalStyle?: StyleProp<ViewStyle>;
   overlayStyle?: any;
+  showDivider?: boolean;
   dividerColor?: string;
   dividerThickness?: number;
+  keyboardAvoiding?: boolean;
 };
 
 const CustomModal = ({
@@ -41,8 +43,10 @@ const CustomModal = ({
   showCloseButton = true,
   modalStyle = {},
   overlayStyle = {},
+  showDivider = true,
   dividerColor = colors['dark-grey'][300],
   dividerThickness = 1,
+  keyboardAvoiding = false,
 }: CustomModalProps) => {
   const { width, height } = useWindowDimensions();
   const isLandscape = width > height;
@@ -85,11 +89,11 @@ const CustomModal = ({
       <TouchableWithoutFeedback onPress={() => setOpen(false)}>
         <View style={[styles.overlay, overlayStyle]} />
       </TouchableWithoutFeedback>
-      <View style={[styles.centeredView, { justifyContent: keyboardVisible ? 'flex-start' : 'center' }]} pointerEvents="box-none">
+      <View style={[styles.centeredView, { justifyContent: (keyboardVisible && keyboardAvoiding) ? 'flex-start' : 'center' }]} pointerEvents="box-none">
 
         <View style={[styles.modalView, modalStyle]}>
           {showTitle && <Text style={[styles.title, titleStyle]}>{title}</Text>}
-          {showTitle && <HorizontalLine thickness={dividerThickness} color={dividerColor} />}
+          {showDivider && <HorizontalLine thickness={dividerThickness} color={dividerColor} />}
           {showCloseButton && (
             <TouchableWithoutFeedback onPress={() => setOpen(false)}>
               <View style={styles.closeButton}>
@@ -114,6 +118,7 @@ const styles = StyleSheet.create({
   },
   centeredView: {
     flex: 1,
+    padding: '5%',
     alignItems: 'center',
   },
   glassOverlay: {

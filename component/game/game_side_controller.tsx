@@ -1,4 +1,4 @@
-import { useMemo, useCallback } from "react";
+import { useMemo, useCallback, useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, useWindowDimensions } from "react-native";
 import BalanceContainer from "./game_balance_container";
 import PopupSummary from "./game_popup_summary";
@@ -12,10 +12,15 @@ import { ResponsiveFontSize } from '../responsive-text';
 import { GameState } from "@/hooks/useGameState";
 import { useSideController } from "@/hooks/useSideController";
 import { t } from "i18next";
+import CustomModal from "../modal/modal";
+import Input from "../input/input";
+import { HorizontalView, VerticalView } from "../view";
+import { Button } from "../button/button";
 
 export const gameMode: { id: GameState['selectedMode'], name: string }[] = [
     { id: 'free', name: 'free' },
     { id: 'with-host', name: 'withHost' },
+    { id: 'winner-takes-all', name: 'winnerTakesAll' }
 ]
 
 export default function SideController({ gameState }
@@ -23,8 +28,8 @@ export default function SideController({ gameState }
     {
         gameState: GameState,
     }) {
-    const { list, currentPool, selectedId, isSwapPlayerOpen, selectedMode } = gameState;
-    const { setCurrentPool, setSelectedId, setIsSwapPlayerOpen, setSelectedMode, setList } = gameState;
+    const { list, currentPool, selectedId, isSwapPlayerOpen, selectedMode, openChooseStartingScore, startingScore } = gameState;
+    const { setCurrentPool, setSelectedId, setIsSwapPlayerOpen, setSelectedMode, setList, setOpenChooseStartingScore, setStartingScore } = gameState;
 
     const { width, height } = useWindowDimensions();
     const isLandscape = useMemo(() => width > height, [width, height]);
@@ -50,18 +55,22 @@ export default function SideController({ gameState }
         showMenu,
         handleDialogConfirm,
         handleDialogCancel,
+        resetGame,
+        onSelectStartingScore,
     } = useSideController(gameState);
 
     // Memoize font sizes to avoid recalculating on every render
     const buttonFontSize = useMemo(
-        () => isLandscape ? ResponsiveFontSize(24) : ResponsiveFontSize(36),
+        () => {
+            return isLandscape ? ResponsiveFontSize(24) : ResponsiveFontSize(32);
+        },
         [isLandscape]
     );
 
     // UI rendering functions
     const addPointButtonText = useCallback((point: number) => {
         return (
-            <Text style={[styles.pointButtonText, { fontSize: buttonFontSize }]}>
+            <Text style={[styles.pointButtonText, { fontSize: Math.abs(point) > 99 ? ResponsiveFontSize(20) : buttonFontSize }]}>
                 {point > 0 ? `+${point}` : `${point}`}
             </Text>
         );
@@ -131,6 +140,8 @@ export default function SideController({ gameState }
                 setIsModifyBtn={setIsModifyBtn}
                 setIsSummaryOpen={setIsSummaryOpen}
                 setIsAddPlayerOpen={setIsAddPlayerOpen}
+                resetGame={resetGame}
+                setOpenChooseStartingScore={setOpenChooseStartingScore}
             />
             <PopupAddPlayer
                 list={list}
@@ -162,8 +173,71 @@ export default function SideController({ gameState }
                 title="Bạn có muốn tiếp tục ván đấu trước"
                 message="Lưu ý bạn sẽ không thể thay đổi quyết định sau khi nhấn nút!"
             />
+            <ChooseStartingScoreModal
+                startingScore={startingScore}
+                onSelectStartingScore={onSelectStartingScore}
+                isOpen={openChooseStartingScore}
+                setIsOpen={setOpenChooseStartingScore}
+            />
         </View>
     );
+}
+
+const ChooseStartingScoreModal = ({
+    isOpen, setIsOpen, startingScore, onSelectStartingScore
+}: { isOpen: boolean, setIsOpen: (isOpen: boolean) => void, startingScore: number, onSelectStartingScore: (startingScore: number) => void }) => {
+    const [inputValue, setInputValue] = useState(startingScore ?? 0);
+
+    useEffect(() => {
+        setInputValue(startingScore ?? 0);
+    }, [isOpen])
+
+    return (
+        <CustomModal
+            open={isOpen} setOpen={setIsOpen}
+            showCloseButton={false}
+            title={t('chooseStartingScore')}
+            showDivider={false}
+            modalStyle={{
+                backgroundColor: colors.white,
+                maxHeight: '85%',
+                width: '100%',
+                maxWidth: '90%',
+            }}
+        >
+            <VerticalView alignItems="stretch" gap={16} styles={{ width: '100%' }}>
+                <Input
+                    autoFocus={true}
+                    value={`${inputValue}`}
+                    type="number"
+                    keyboardType="number-pad"
+                    placeholder={t('enterStartingScore')}
+                    onChangeText={(text) => setInputValue(Number(text))}
+                />
+                <HorizontalView alignItems="stretch" gap={8}>
+                    <Button
+                        fullWidth={false}
+                        variant="outline"
+                        style={[styles.modalButton]}
+                        title={t('cancel')}
+                        onClick={() => {
+                            setInputValue(0);
+                            setIsOpen(false);
+                        }}
+                    />
+                    <Button
+                        fullWidth={false}
+                        style={[styles.modalButton]}
+                        title={t('save')}
+                        onClick={() => {
+                            onSelectStartingScore(inputValue);
+                            setIsOpen(false);
+                        }}
+                    />
+                </HorizontalView>
+            </VerticalView>
+        </CustomModal>
+    )
 }
 
 // Note: addRowToTable and summaryTotalPoint functions have been removed
@@ -172,6 +246,9 @@ export default function SideController({ gameState }
 // using React state instead of DOM manipulation
 
 const styles = StyleSheet.create({
+    modalButton: {
+        flex: 1,
+    },
     container: {
         flexShrink: 1,
         flexDirection: 'column-reverse',

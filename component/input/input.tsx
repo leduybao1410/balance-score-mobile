@@ -61,6 +61,7 @@ function formatCurrency(value: string) {
 }
 
 export const Input = ({
+    autoFocus = false,
     inputRef,
     icon,
     label,
@@ -92,6 +93,7 @@ export const Input = ({
     rightIcon,
     editable = true,
 }: {
+    autoFocus?: boolean;
     inputRef?: React.RefObject<TextInput>;
     icon?: React.ReactNode;
     label?: string;
@@ -197,7 +199,7 @@ export const Input = ({
                         autoComplete={autoComplete}
                         onBlur={onBlur}
                         editable={editable}
-                        autoFocus={false}
+                        autoFocus={autoFocus}
                         placeholderTextColor={placeholderColor ?? placeholderDefaultColor}
                         className={`w-full ${isTextarea ? '' : 'h-12'} rounded-lg border border-dark-grey-300 bg-white px-4 text-dark-grey-800 ${icon || type === 'search' ? 'pl-12' : ''}`}
                         style={[

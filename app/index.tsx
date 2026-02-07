@@ -1,4 +1,4 @@
-import { Dimensions, Image, Linking, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, Image, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { MenuCardBtn } from '@/component/home/menu-card-btn';
 import { HorizontalView, VerticalView } from '@/component/view';
 import { colors } from '@/constant/colors';
@@ -8,24 +8,22 @@ import { Link, router } from 'expo-router';
 import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
 import { Platform } from 'react-native';
 import { ADS_ID } from '@/constant/ads-id';
-import { useInterstitialAd } from '@/context/interstitial-ad-context';
 import { folderHelpers } from '@/libs/helpers/folder-helpers';
 import LanguageSelector from '@/component/languageSelector';
 import { useLanguage } from '@/hooks/useLanguage';
 import { usePreventDoublePress } from '@/hooks/usePreventDoublePress';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { author } from '@/constant/about-author';
+import { logEvent, AnalyticsEvents } from '@/utils/analytics';
 
 const screen = Dimensions.get('window');
 
 export const bannerAd = Platform.OS === 'ios' ? ADS_ID.banner.ios : ADS_ID.banner.android;
 
 export default function HomeScreen() {
-  const { showAd } = useInterstitialAd();
   const { t } = useLanguage();
 
   const handleStartNow = () => {
-    showAd();
+    logEvent(AnalyticsEvents.startGame);
     // Navigate to game screen after ad is closed
     const folderName = folderHelpers.generateFolderName();
     folderHelpers.initFolder(folderName).then(() => {
@@ -92,11 +90,14 @@ export default function HomeScreen() {
               textColor={colors['dark-grey'][800]}
             />
           </VerticalView>
-          <HorizontalView alignItems='center' >
+          <VerticalView alignItems='center' >
+            <Text style={styles.instructionText}>
+              {t('viewInstruction')}
+            </Text>
             <Link style={styles.aboutAuthorLink} href={author.url}>
               <Text style={styles.aboutAuthorText}>@leduybao.io.vn</Text>
             </Link>
-          </HorizontalView>
+          </VerticalView>
         </VerticalView>
       </ScrollView >
       <BannerAd
@@ -161,5 +162,11 @@ const styles = StyleSheet.create({
   aboutAuthorText: {
     ...myFontStyle.small,
     fontWeight: 'bold',
+  },
+  instructionText: {
+    ...myFontStyle.small,
+    color: colors['dark-grey'][700],
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
 });

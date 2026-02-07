@@ -66,7 +66,7 @@ export const playerList: playerListItem[] = [
     },
     {
         id: 8,
-        name: "Thành",
+        name: "V.Anh",
         point: 0,
         total: 0,
         bgColor: "bg-gray-500",

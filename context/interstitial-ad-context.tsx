@@ -33,7 +33,7 @@ export function InterstitialAdProvider({ children }: InterstitialAdProviderProps
     // return;
     if (interstitialAd.loaded) {
       onClosedCallbackRef.current = onClosed;
-      // interstitialAd.show();
+      interstitialAd.show();
     } else {
       // If ad is not loaded yet, execute callback immediately
       if (onClosed) {

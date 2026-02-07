@@ -1,16 +1,13 @@
-
-import { useState, useEffect, useMemo } from "react";
-import { View, Modal, TouchableOpacity, Alert, Text, FlatList } from "react-native";
+import { View, Modal, Alert } from "react-native";
 import { playerListItem } from "./game_data";
-import * as XLSX from "xlsx";
-import { lineDataType } from "../chart/sample_data";
 import { Button } from "../button/button";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-// @ts-ignore
-import DataTable, { COL_TYPES } from "react-native-datatable-component-v2";
 import HistorySheet from "./summary-popup/history-sheet";
 import { GameState } from "@/hooks/useGameState";
 import { t } from "i18next";
+import { exportExcel } from "@/libs/helpers/excel-helpers";
+import { useMemo } from "react";
+import { HistoryItem } from "@/hooks/useGameHistory";
 
 type playerSum = {
     id: number;
@@ -20,11 +17,6 @@ type playerSum = {
     history: number[];
 }
 
-type TableHeader = {
-    label: string;
-    id?: string; // For player headers: 'player-th-{id}'
-    playerId?: number; // For player headers
-}
 
 type PopupSummaryProps = {
     gameState: GameState;
@@ -32,10 +24,53 @@ type PopupSummaryProps = {
     setIsSummaryOpen: (bool: boolean) => void;
 }
 
-const PopupSummary = ({ gameState, isSummaryOpen, setIsSummaryOpen }: PopupSummaryProps) => {
-    const { list, currentPool } = gameState;
+function PopupSummary({ gameState, isSummaryOpen, setIsSummaryOpen }: PopupSummaryProps) {
+    const { list } = gameState;
     const { history } = gameState;
 
+    const rowsData = useMemo(() => {
+        if (!history?.history) return [];
+
+        // Calculate total scores for each player
+        const playerTotals: { [playerId: number]: number } = {};
+        history.history.forEach((round: HistoryItem) => {
+            round.data.forEach((item) => {
+                if (!playerTotals[item.id]) {
+                    playerTotals[item.id] = 0;
+                }
+                playerTotals[item.id] += item.point;
+            });
+        });
+
+        // Map rounds to rows
+        const rows = history.history.map((round: HistoryItem, index: number) => {
+            // Start with game index and selectedMode as first two columns
+            const row: { [key: string]: number | string } = {
+                'Game': index + 1,
+                'Mode': round.mode === 'free' ? t('free') : round.mode === 'with-host' ? t('withHost') : t('winnerTakesAll'),
+            };
+            // Add player data
+            round.data.forEach((item) => {
+                const player = list?.find((player: playerListItem) => player.id === item.id);
+                if (player) {
+                    row[player.name] = `${item.point}${item.host ? ' (H)' : ''}`;
+                }
+            });
+            return row;
+        });
+
+        // Add total row at the end
+        const totalRow: { [key: string]: number | string } = {
+            'Game': t('total') || 'Total',
+            'Mode': '',
+        };
+        list?.forEach((player: playerListItem) => {
+            totalRow[player.name] = playerTotals[player.id] || 0;
+        });
+        rows.push(totalRow);
+
+        return rows;
+    }, [history, list]);
 
     return (
         <Modal
@@ -75,7 +110,10 @@ const PopupSummary = ({ gameState, isSummaryOpen, setIsSummaryOpen }: PopupSumma
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Button
                         title={'Export'}
-                        onClick={() => { }}
+                        onClick={() => {
+                            exportExcel(rowsData)
+                            // Alert.alert(t('exportWillComingSoon'))
+                        }}
                         style={{ backgroundColor: '#10b981', borderRadius: 9999, paddingHorizontal: 16, paddingVertical: 8 }}
                         textColor="#ffffff"
                         fullWidth={false}

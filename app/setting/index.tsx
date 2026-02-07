@@ -15,6 +15,7 @@ import ConfirmPopup from "@/component/popup/confirm-popup";
 import { Toast } from "toastify-react-native";
 import { useFocusEffect } from "expo-router";
 import ConfigPlayerPosition from "@/component/dnd/dragable-config-player-position";
+import { useInterstitialAd } from "@/context/interstitial-ad-context";
 
 export const configFilePath = RNFS.DocumentDirectoryPath + '/config.json';
 
@@ -46,22 +47,17 @@ export default function SettingScreen() {
     const [data, setData] = useState<playerListItem[]>([])
     const [selectedItem, setSelectedItem] = useState<playerListItem | null>(null)
     const [modalType, setModalType] = useState<'edit' | 'add'>('edit')
-
-    const loadConfigData = useCallback(() => {
-        getConfigData().then((data) => {
-            setData(data || []);
-        });
-    }, []);
-
-    // Load data on mount (for fast refresh)
-    useEffect(() => {
-        loadConfigData();
-    }, [loadConfigData]);
+    const { showAd, } = useInterstitialAd();
 
     // Reload data when screen is focused
     useFocusEffect(useCallback(() => {
-        loadConfigData();
-    }, [loadConfigData]))
+        getConfigData().then((data) => {
+            setData(data || []);
+        });
+        return () => {
+            setData([]);
+        }
+    }, []))
 
     const renderItem = useCallback(({ item }: { item: playerListItem }) => {
         return (<PlayerItemCard key={`player-item-${item.id}`} item={item} onPress={() => setSelectedItem(item)} />)
@@ -79,10 +75,14 @@ export default function SettingScreen() {
             // Update state with formatted data to ensure fast refresh works
             setData(formatedData);
             Toast.success(t('configSaved'));
+            setTimeout(() => {
+                showAd();
+            }, 1000)
         }).catch((err) => {
             console.log(err);
             Toast.error(t('configSaveError') || 'Failed to save config');
         });
+
     }, [data])
 
     const [showConfirmResetConfig, setShowConfirmResetConfig] = useState(false);

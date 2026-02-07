@@ -78,15 +78,15 @@ export function useGameHistory({ folderName, playerData }: { folderName: string,
 
     useEffect(() => {
         if (history == null || !folderName) return;
-        const optimizeData = history.history.map(item => ({
-            d: item.data.map(data => ({
+        const optimizeData = history?.history?.map(item => ({
+            d: item?.data?.map(data => ({
                 id: data.id,
                 p: data.point,
                 h: data.host ? 1 : 0,
             })),
-            m: item.mode === 'free' ? 0 : 1,
-            r: item.row,
-        }));
+            m: item?.mode === 'free' ? 0 : 1,
+            r: item?.row,
+        })) || [];
         const writeData = {
             playerData,
             history: optimizeData

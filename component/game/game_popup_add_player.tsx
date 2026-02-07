@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Modal, ScrollView, Dimensions, TextInput, Alert } from 'react-native';
+import { Checkbox } from 'expo-checkbox';
 import { playerListItem } from "./game_data";
 import { colors } from '@/constant/colors';
-import { ResponsiveFontSize } from '../responsive-text';
+import { myFontStyle, ResponsiveFontSize } from '../responsive-text';
 import { Button } from '../button/button';
 import { t } from 'i18next';
+import { HorizontalView, VerticalView } from '../view';
+import CustomModal from '../modal/modal';
+import { logEvent, AnalyticsEvents } from '@/utils/analytics';
 
 const { width, height } = Dimensions.get('window');
 
@@ -15,19 +19,34 @@ const PopupAddPlayer = ({ isOpen, setIsOpen, currentPool, setCurrentPool, list, 
     }) => {
     const [showNameInput, setShowNameInput] = useState(false);
     const [newPlayerName, setNewPlayerName] = useState('');
+    const [selectedIds, setSelectedIds] = useState<number[]>([]);
+
+    useEffect(() => {
+        if (isOpen) setSelectedIds([]);
+    }, [isOpen]);
 
     if (!currentPool) return null;
     const outsidePlayer = list?.filter(player => !currentPool.includes(player.id)) || [];
 
-    const addPlayer = (playerId: number) => {
-        const newList = [...currentPool];
-        newList.push(playerId);
+    const togglePlayerSelection = (playerId: number) => {
+        setSelectedIds(prev =>
+            prev.includes(playerId)
+                ? prev.filter(id => id !== playerId)
+                : [...prev, playerId]
+        );
+    };
+
+    const addSelectedPlayers = () => {
+        if (selectedIds.length === 0) return;
+        logEvent(AnalyticsEvents.addPlayer, { count: selectedIds.length });
+        const newList = [...currentPool, ...selectedIds];
         setCurrentPool(null);
         setTimeout(() => {
             setCurrentPool(newList);
+            setSelectedIds([]);
             setIsOpen(false);
-        }, 100)
-    }
+        }, 100);
+    };
 
     const handleAddNewName = () => {
         if (!list || !currentPool) return;
@@ -35,6 +54,7 @@ const PopupAddPlayer = ({ isOpen, setIsOpen, currentPool, setCurrentPool, list, 
             Alert.alert('Lỗi', 'Vui lòng nhập tên người chơi');
             return;
         }
+        logEvent(AnalyticsEvents.addPlayer, { count: 1 });
         const randomBgColor = generateBackgroundColor();
         const randomTextColor = generateTextColor(randomBgColor);
         const newPlayer: playerListItem = {
@@ -60,86 +80,131 @@ const PopupAddPlayer = ({ isOpen, setIsOpen, currentPool, setCurrentPool, list, 
     }
 
     return (
-        <Modal
-            visible={isOpen}
-            transparent={true}
-            animationType="fade"
-            onRequestClose={() => setIsOpen(false)}
-        >
-            <TouchableOpacity
-                style={styles.overlay}
-                activeOpacity={1}
-                onPress={() => setIsOpen(false)}
+        <>
+            <CustomModal
+                open={isOpen}
+                setOpen={setIsOpen}
+                showTitle={false}
+                showDivider={false}
+                modalStyle={{
+                    backgroundColor: colors.white,
+                    width: width * 0.9,
+                    minHeight: '50%',
+                    maxWidth: width * 0.9,
+                    maxHeight: '80%',
+                }}
+                showCloseButton={false}
             >
-                <View style={styles.popupContainer}>
-                    <View style={styles.popup}>
+                <VerticalView alignItems='stretch' justifyContent='space-between' gap={16} >
+                    <VerticalView alignItems="stretch" >
                         <Text style={styles.title}>{t('addPlayer')}</Text>
                         <ScrollView
                             style={styles.playerList}
                             contentContainerStyle={styles.playerListContent}
                         >
-                            {outsidePlayer.map(player => (
-                                <TouchableOpacity
-                                    key={player.id}
-                                    style={styles.playerButton}
-                                    onPress={() => addPlayer(player.id)}
-                                    activeOpacity={0.7}
-                                >
-                                    <Text style={styles.playerButtonText}>{player.name}</Text>
-                                </TouchableOpacity>
-                            ))}
+                            {outsidePlayer.map(player => {
+                                const isSelected = selectedIds.includes(player.id);
+                                return (
+                                    <TouchableOpacity
+                                        key={player.id}
+                                        style={[styles.playerButton, isSelected && styles.playerButtonSelected]}
+                                        onPress={() => togglePlayerSelection(player.id)}
+                                        activeOpacity={0.7}
+                                    >
+                                        <Checkbox
+                                            value={isSelected}
+                                            onValueChange={() => togglePlayerSelection(player.id)}
+                                            color={colors['dark-grey'][700]}
+                                            style={styles.playerCheckbox}
+                                        />
+                                        <Text style={[styles.playerButtonText, isSelected && styles.playerButtonTextSelected]} numberOfLines={1}>{player.name}</Text>
+                                    </TouchableOpacity>
+                                );
+                            })}
                         </ScrollView>
+                    </VerticalView>
+                    <HorizontalView gap={12} styles={{ flexGrow: 0 }}>
                         <Button
+                            fullWidth={false}
                             title={t('addNewName')}
-                            onClick={() => setShowNameInput(true)}
+                            onClick={() => {
+                                setIsOpen(false);
+                                setTimeout(() => setShowNameInput(true), 500)
+                            }}
                             style={styles.addButton}
+                            textColor={colors['dark-grey'][800]}
+                        />
+                        <Button
+                            fullWidth={false}
+                            style={{ flex: 1 }}
+                            // variant='outline'
+                            title={t('addSelected')}
+                            onClick={addSelectedPlayers}
+                            // style={[
+                            //     styles.addSelectedButton,
+                            //     // selectedIds.length === 0 && styles.addSelectedButtonDisabled
+                            // ]}
+                            // textColor={colors.white}
+                            disabled={selectedIds.length === 0}
+                        />
+                    </HorizontalView>
+                </VerticalView>
+            </CustomModal>
+            {/* <Modal
+                visible={showNameInput}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => {
+                    setShowNameInput(false);
+                    setNewPlayerName('');
+                }}
+            >
+                
+            </Modal> */}
+            <CustomModal
+                open={showNameInput}
+                setOpen={setShowNameInput}
+                showTitle={false}
+                showCloseButton={false}
+                showDivider={false}
+                modalStyle={{
+                    backgroundColor: colors.white,
+                    minHeight: '30%',
+                    maxHeight: '60%',
+                    width: '100%',
+                    maxWidth: '90%',
+                }}
+            >
+                <VerticalView alignItems="stretch" styles={{ width: '100%' }}>
+                    <Text style={styles.inputTitle}>Nhập tên người chơi mới</Text>
+                    <TextInput
+                        style={styles.input}
+                        value={newPlayerName}
+                        onChangeText={setNewPlayerName}
+                        placeholder={t('playerName')}
+                        autoFocus
+                    />
+                    <View style={styles.inputButtons}>
+                        <Button
+                            title={t('cancel')}
+                            onClick={() => {
+                                setShowNameInput(false);
+                                setNewPlayerName('');
+                            }}
+                            variant="outline"
+                            style={styles.cancelButton}
+                        />
+                        <Button
+                            title={t('apply')}
+                            onClick={handleAddNewName}
+                            style={styles.confirmButton}
                             textColor={colors.white}
                         />
-                        {showNameInput && (
-                            <Modal
-                                visible={showNameInput}
-                                transparent={true}
-                                animationType="fade"
-                                onRequestClose={() => {
-                                    setShowNameInput(false);
-                                    setNewPlayerName('');
-                                }}
-                            >
-                                <View style={styles.inputOverlay}>
-                                    <View style={styles.inputContainer}>
-                                        <Text style={styles.inputTitle}>Nhập tên người chơi mới</Text>
-                                        <TextInput
-                                            style={styles.input}
-                                            value={newPlayerName}
-                                            onChangeText={setNewPlayerName}
-                                            placeholder="Tên người chơi"
-                                            autoFocus
-                                        />
-                                        <View style={styles.inputButtons}>
-                                            <Button
-                                                title="Hủy"
-                                                onClick={() => {
-                                                    setShowNameInput(false);
-                                                    setNewPlayerName('');
-                                                }}
-                                                variant="outline"
-                                                style={styles.cancelButton}
-                                            />
-                                            <Button
-                                                title="Thêm"
-                                                onClick={handleAddNewName}
-                                                style={styles.confirmButton}
-                                                textColor={colors.white}
-                                            />
-                                        </View>
-                                    </View>
-                                </View>
-                            </Modal>
-                        )}
                     </View>
-                </View>
-            </TouchableOpacity>
-        </Modal>
+                </VerticalView>
+            </CustomModal>
+
+        </>
     )
 }
 
@@ -184,53 +249,63 @@ const styles = StyleSheet.create({
         maxWidth: 400,
         minHeight: 200,
     },
-    popup: {
-        backgroundColor: colors.white,
-        borderRadius: 12,
-        padding: 16,
-        gap: 8,
-        maxHeight: height * 0.75,
-    },
     title: {
         textAlign: 'center',
-        fontSize: ResponsiveFontSize(20),
-        fontWeight: 'bold',
+        ...myFontStyle.normal,
+        fontWeight: 'semibold',
         color: colors['dark-grey'][900],
-        marginBottom: 8,
     },
     playerList: {
-        backgroundColor: colors.green[600],
-        borderRadius: 8,
+        backgroundColor: colors['dark-grey'][300],
+        borderRadius: 12,
         borderWidth: 2,
         borderColor: colors['dark-grey'][400],
-        maxHeight: height * 0.4,
     },
     playerListContent: {
         padding: 8,
         gap: 8,
     },
     playerButton: {
-        justifyContent: 'center',
+        flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: colors.white,
         borderRadius: 8,
         paddingVertical: 16,
         paddingHorizontal: 16,
+        gap: 12,
+    },
+    playerCheckbox: {
+        margin: 0,
+        borderRadius: 4,
+        borderWidth: 1,
     },
     playerButtonText: {
-        textAlign: 'center',
+        flex: 1,
         fontWeight: '600',
         fontSize: ResponsiveFontSize(18),
         color: colors['dark-grey'][900],
     },
-    addButton: {
-        backgroundColor: colors.primary[500],
+    playerButtonTextSelected: {
+        color: colors.white,
+    },
+    playerButtonSelected: {
+        backgroundColor: colors['dark-grey'][600],
+    },
+    addSelectedButton: {
+        backgroundColor: colors.primary[600],
         borderRadius: 8,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
         elevation: 2,
+    },
+    addSelectedButtonDisabled: {
+        opacity: 0.5,
+    },
+    addButton: {
+        flex: 1,
+        backgroundColor: colors['dark-grey'][300],
     },
     inputOverlay: {
         flex: 1,

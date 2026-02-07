@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Dispatch, SetStateAction } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Modal, ScrollView, Dimensions } from 'react-native';
 import { playerList } from "./game_data";
 import { colors } from '@/constant/colors';
@@ -14,19 +14,18 @@ const PopupSwapPlayer = ({ selecetedId, setSelectedID, isOpen, setIsOpen, curren
         isOpen: boolean,
         setIsOpen: (bool: boolean) => void,
         currentPool: number[] | null,
-        setCurrentPool: (array: number[] | null) => void,
+        setCurrentPool: Dispatch<SetStateAction<number[] | null>>,
     }) => {
     if (!currentPool) return null;
     const outsidePlayer = playerList.filter(player => !currentPool.includes(player.id))
 
     const swapPlayer = (playerId: number) => {
         const newList = currentPool.filter(id => id !== selecetedId);
+
         newList.push(playerId);
-        setCurrentPool(null);
-        setTimeout(() => {
-            setCurrentPool(newList);
-            setIsOpen(false);
-        }, 100)
+        console.log('newList', newList, playerId);
+        setCurrentPool(() => ([...newList]));
+        setIsOpen(false);
     }
 
     return (
@@ -93,7 +92,7 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     playerList: {
-        backgroundColor: colors.green[600],
+        backgroundColor: colors['dark-grey'][300],
         borderRadius: 8,
         borderWidth: 2,
         borderColor: colors['dark-grey'][400],

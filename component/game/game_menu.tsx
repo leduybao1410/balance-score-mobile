@@ -1,5 +1,5 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Modal, useWindowDimensions, Platform, ScrollView } from 'react-native';
+import React, { useRef, useState, useEffect, useMemo, useCallback } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Modal, useWindowDimensions, Platform, ScrollView, Pressable } from 'react-native';
 import { gameMode } from "./game_side_controller";
 import { colors } from '@/constant/colors';
 import { ResponsiveFontSize } from '../responsive-text';
@@ -11,9 +11,12 @@ import { GameState } from '@/hooks/useGameState';
 import { t } from 'i18next';
 import LanguageSelector from '../languageSelector';
 import ConfirmPopup from '../popup/confirm-popup';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AnalyticsEvents, logEvent } from '@/utils/analytics';
+import { useLanguage } from '@/hooks/useLanguage';
 
-const GameMenu = (
-    { isOpen, setIsOpen, setIsSummaryOpen, setIsAddPlayerOpen, setIsModifyBtn, selectedMode, setSelectedMode }
+export default function GameMenu(
+    { isOpen, setIsOpen, setIsSummaryOpen, setIsAddPlayerOpen, setIsModifyBtn, selectedMode, setSelectedMode, resetGame, setOpenChooseStartingScore }
         :
         {
             isOpen: boolean,
@@ -22,13 +25,16 @@ const GameMenu = (
             setIsAddPlayerOpen: (bool: boolean) => void,
             setIsModifyBtn: (bool: boolean) => void,
             selectedMode: GameState['selectedMode'],
-            setSelectedMode: GameState['setSelectedMode']
+            setSelectedMode: GameState['setSelectedMode'],
+            resetGame: () => void
+            setOpenChooseStartingScore: (bool: boolean) => void
         }
-) => {
-    const { width, height } = useWindowDimensions();
+) {
+    const { width, height, } = useWindowDimensions();
     const isLandscape = width > height;
     const [orientation, setOrientation] = useState(isLandscape ? 'landscape' : 'portrait');
-
+    const { currentLanguage } = useLanguage();
+    const insets = useSafeAreaInsets();
     // Update orientation state when dimensions change
     useEffect(() => {
         setOrientation(isLandscape ? 'landscape' : 'portrait');
@@ -37,15 +43,43 @@ const GameMenu = (
     const { showAd } = useInterstitialAd();
 
 
-    const [showConfirmExit, setShowConfirmExit] = useState(false);
 
     const onExit = () => {
         showAd();
         AsyncStorage.removeItem('gameData').then(() => {
+            console.log('exitGameSucces');
             setIsOpen(false);
+            resetGame();
             router.back();
         })
     }
+
+    const [confirmPopupType, setConfirmPopupType] = useState<'exit' | 'reset'>('exit');
+    const [openConfirmPopup, setOpenConfirmPopup] = useState(false);
+
+    const confirmButtonText = useMemo(() => {
+        return confirmPopupType === 'exit' ? t('exit') : t('resetZeroPoint');
+    }, [confirmPopupType]);
+
+    const cancelButtonText = useMemo(() => {
+        return t('cancel');
+    }, [confirmPopupType]);
+
+    const confirmPopupTitle = useMemo(() => {
+        return confirmPopupType === 'exit' ? t('confirmExitTitle') : t('confirmResetZeroPointTitle');
+    }, [confirmPopupType]);
+
+    const confirmPopupMessage = useMemo(() => {
+        return confirmPopupType === 'exit' ? t('confirmExitMessage') : t('confirmResetZeroPointMessage');
+    }, [confirmPopupType]);
+
+    const onConfirm = useCallback(() => {
+        if (confirmPopupType === 'exit') {
+            onExit();
+        } else {
+            resetGame();
+        }
+    }, [confirmPopupType]);
 
     type menuBtnProps = {
         name: string;
@@ -54,19 +88,37 @@ const GameMenu = (
         textColor?: string;
     }
 
-    const list: menuBtnProps[] = [
-        { name: t('addPlayer'), action: () => { setIsAddPlayerOpen(true); setIsOpen(false) } },
-        { name: t('showSummary'), action: () => { setIsSummaryOpen(true); setIsOpen(false) } },
-        { name: t('modifyButton'), action: () => { setIsModifyBtn(true); setIsOpen(false) } },
+    const list: menuBtnProps[] = useMemo(() => ([
+        { name: t('addPlayer'), action: () => { logEvent(AnalyticsEvents.addPlayer); setIsAddPlayerOpen(true); setIsOpen(false) } },
+        { name: t('showSummary'), action: () => { logEvent(AnalyticsEvents.showSummary); setIsSummaryOpen(true); setIsOpen(false) } },
+        { name: t('modifyButton'), action: () => { logEvent(AnalyticsEvents.modify_button); setIsModifyBtn(true); setIsOpen(false) } },
+        {
+            name: t('resetZeroPoint'), action: () => {
+                logEvent(AnalyticsEvents.reset_zero_point);
+                setConfirmPopupType('reset');
+                setOpenConfirmPopup(true);
+                setIsOpen(false)
+            }
+        },
+        {
+            name: t('chooseStartingScore'), action: () => {
+                logEvent(AnalyticsEvents.choose_starting_score);
+                setOpenChooseStartingScore(true);
+                setIsOpen(false);
+            }
+        },
         {
             name: t('exit'),
             bgColor: colors.red[600],
             action: () => {
+                logEvent(AnalyticsEvents.exitGame);
+                setConfirmPopupType('exit');
                 setIsOpen(false);
-                setShowConfirmExit(true);
+                setOpenConfirmPopup(true);
             },
         },
-    ];
+    ]), [currentLanguage]);
+
 
 
     return (
@@ -80,81 +132,78 @@ const GameMenu = (
                 supportedOrientations={['portrait', 'landscape', 'landscape-left', 'landscape-right', 'portrait-upside-down']}
             >
 
-                <TouchableOpacity
+                <Pressable
                     style={styles.overlay}
-                    activeOpacity={1}
                     onPress={() => setIsOpen(false)}
                 >
+                </Pressable>
 
+                <View
+                    style={[styles.modalContainer, {
+                        maxHeight: height,
+                        width: isLandscape ? width * 0.3 : 208,
+                        maxWidth: isLandscape ? width * 0.4 : 300,
+                        paddingTop: insets.top,
+                        paddingBottom: insets.bottom,
+                    }]}>
                     <ScrollView
+                        style={styles.content}
                         contentContainerStyle={styles.menuContainer}
-                        style={[
-                            {
-                                position: 'absolute',
-                                top: 0,
-                                right: 0,
-                                bottom: 0,
-                                height: '100%',
-                                width: isLandscape ? width * 0.3 : 208,
-                                maxWidth: isLandscape ? width * 0.4 : 300,
-                            }
-                        ]}>
-                        <View style={styles.content}>
-
-                            <View style={styles.modeContainer}>
-                                <LanguageSelector containerStyle={styles.languageContainer} />
-                                <Text style={styles.modeTitle}>{t('currentMode')}</Text>
-                                <View style={styles.pickerContainer}>
-                                    {gameMode.map((item) => (
-                                        <TouchableOpacity
-                                            key={item.id}
-                                            style={[
-                                                styles.pickerOption,
-                                                selectedMode === item.id && styles.pickerOptionSelected
-                                            ]}
-                                            onPress={() => setSelectedMode(item.id as 'free' | 'with-host')}
-                                        >
-                                            <Text style={[
-                                                styles.pickerOptionText,
-                                                selectedMode === item.id as 'free' | 'with-host' && styles.pickerOptionTextSelected
-                                            ]}>
-                                                {t(item.name)}
-                                            </Text>
-                                        </TouchableOpacity>
-                                    ))}
-                                </View>
-                            </View>
-                            <View style={styles.listContainer}>
-
-                                {list.map((item) => (
-                                    <Button
-                                        key={item.name}
-                                        title={item.name}
-                                        onClick={item.action}
-                                        style={[styles.menuButton, item.bgColor && { backgroundColor: item.bgColor }]}
-                                        textColor={item?.textColor ?? colors.white}
-                                    />
+                    >
+                        <View style={styles.modeContainer}>
+                            <LanguageSelector containerStyle={styles.languageContainer} />
+                            <Text style={styles.modeTitle}>{t('currentMode')}</Text>
+                            <View style={styles.pickerContainer}>
+                                {gameMode.map((item) => (
+                                    <TouchableOpacity
+                                        key={item.id}
+                                        style={[
+                                            styles.pickerOption,
+                                            selectedMode === item.id && styles.pickerOptionSelected
+                                        ]}
+                                        onPress={() => setSelectedMode(item.id as 'free' | 'with-host')}
+                                    >
+                                        <Text style={[
+                                            styles.pickerOptionText,
+                                            selectedMode === item.id as 'free' | 'with-host' && styles.pickerOptionTextSelected
+                                        ]}>
+                                            {t(item.name)}
+                                        </Text>
+                                    </TouchableOpacity>
                                 ))}
                             </View>
                         </View>
+                        <View style={styles.listContainer}>
+                            {list.map((item) => (
+                                <Button
+                                    key={item.name}
+                                    title={item.name}
+                                    onClick={item.action}
+                                    style={[styles.menuButton, item.bgColor && { backgroundColor: item.bgColor }]}
+                                    textColor={item?.textColor ?? colors.white}
+                                />
+                            ))}
+                        </View>
                     </ScrollView>
-                </TouchableOpacity>
+                </View>
+
             </Modal >
             <ConfirmPopup
-                visible={showConfirmExit}
-                confirmText={t('exit')}
-                cancelText={t('cancel')}
-                title={t('confirmExitTitle')}
-                message={t('confirmExitMessage')}
+                variant={confirmPopupType === 'exit' ? 'danger' : 'primary'}
+                visible={openConfirmPopup}
+                confirmText={confirmButtonText}
+                cancelText={cancelButtonText}
+                title={confirmPopupTitle}
+                message={confirmPopupMessage}
                 onConfirm={() => {
-                    setShowConfirmExit(false);
-                    setTimeout(() => onExit(), 1000)
+                    setOpenConfirmPopup(false);
+                    setTimeout(() => onConfirm(), 1000)
                 }}
                 onCancel={() => {
-                    setShowConfirmExit(false);
+                    setOpenConfirmPopup(false);
                 }}
                 onClose={() => {
-                    setShowConfirmExit(false);
+                    setOpenConfirmPopup(false);
                 }}
             />
         </>
@@ -162,25 +211,27 @@ const GameMenu = (
 }
 
 const styles = StyleSheet.create({
+    modalContainer: {
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        bottom: 0,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: colors.white,
+    },
     overlay: {
         flex: 1,
         backgroundColor: 'rgba(0, 0, 0, 0.4)',
     },
     menuContainer: {
-        flex: 1,
-        backgroundColor: colors.white,
         padding: 8,
     },
     content: {
-        flex: 1,
-        height: '100%',
-        alignSelf: 'center',
-        justifyContent: 'center',
         gap: 8,
     },
     modeContainer: {
         flexDirection: 'column',
-        padding: 8,
         paddingVertical: 24,
         gap: 8,
         backgroundColor: colors['light-grey'][200],
@@ -197,6 +248,10 @@ const styles = StyleSheet.create({
         padding: 8
     },
     pickerContainer: {
+        borderWidth: 1,
+        borderColor: colors['dark-grey'][400],
+        padding: 4,
+        borderRadius: 16,
         flexDirection: 'column',
         gap: 4,
     },
@@ -207,7 +262,7 @@ const styles = StyleSheet.create({
         backgroundColor: colors.white,
     },
     pickerOptionSelected: {
-        backgroundColor: colors.primary[500],
+        backgroundColor: colors.primary[700],
     },
     pickerOptionText: {
         fontSize: ResponsiveFontSize(14),
@@ -226,5 +281,3 @@ const styles = StyleSheet.create({
         borderRadius: 100,
     },
 });
-
-export default GameMenu;

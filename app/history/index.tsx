@@ -8,15 +8,18 @@ import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { FlatList, Image, Pressable, RefreshControl, StyleSheet, Text, TouchableOpacity } from "react-native";
 import { BannerAd, BannerAdSize } from "react-native-google-mobile-ads";
+import { useInterstitialAd } from "@/context/interstitial-ad-context";
 import { bannerAd } from "../index";
 import { t } from "i18next";
 import { icons } from "@/constant/images";
 import { renderHitSlop } from "@/utils/utils";
+import { logEvent, AnalyticsEvents } from "@/utils/analytics";
 
 export default function HistoryScreen() {
     const [history, setHistory] = useState<string[]>([]);
     const [refreshing, setRefreshing] = useState(false);
     const [showClearAllConfirmPopup, setShowClearAllConfirmPopup] = useState(false);
+    const { showAd } = useInterstitialAd();
 
     const getHistory = async () => {
         setRefreshing(true);
@@ -45,12 +48,15 @@ export default function HistoryScreen() {
             <TouchableOpacity
 
                 style={styles.historyItemContainer}
-                onPress={() => router.push({
-                    pathname: '/history/detail',
-                    params: {
-                        folderName: item,
-                    },
-                })}>
+                onPress={() => {
+                    logEvent(AnalyticsEvents.viewGameHistory, { folder_name: item });
+                    router.push({
+                        pathname: '/history/detail',
+                        params: {
+                            folderName: item,
+                        },
+                    });
+                }}>
                 <HorizontalView>
                     <Text style={styles.historyItemTitle}>{index + 1}. {time.toLocaleTimeString()} - {time.toLocaleDateString()}</Text>
                     <Pressable
@@ -90,6 +96,7 @@ export default function HistoryScreen() {
                 title={t('confirmDeleteGameTitle')}
                 message={t('confirmDeleteGameMessage')}
                 onConfirm={() => {
+                    logEvent(AnalyticsEvents.deleteGameHistory, { folder_name: selectedFolderName || '' });
                     deleteGame(selectedFolderName || '');
                     setShowConfirmDeletePopup(false);
                 }}
@@ -118,10 +125,12 @@ export default function HistoryScreen() {
                 title={t('clearAll')}
                 message={t('confirmClearHistory')}
                 onConfirm={() => {
+                    logEvent(AnalyticsEvents.clearAllHistory);
                     folderHelpers.deleteAllGameFolder();
                     setShowClearAllConfirmPopup(false);
                     setTimeout(() => {
                         getHistory();
+                        showAd();
                     }, 1000)
                 }}
                 onCancel={() => {

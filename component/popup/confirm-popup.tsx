@@ -6,6 +6,7 @@ import { HorizontalView, VerticalView } from '@/component/view';
 import { Button } from '@/component/button/button';
 
 export interface ConfirmPopupProps {
+    variant?: 'primary' | 'danger';
     visible: boolean;
     title: string;
     message?: string;
@@ -20,6 +21,7 @@ export interface ConfirmPopupProps {
 }
 
 const ConfirmPopup = memo(function ConfirmPopup({
+    variant = 'primary',
     visible,
     title,
     message,
@@ -88,7 +90,7 @@ const ConfirmPopup = memo(function ConfirmPopup({
                                 <Button
                                     loading={loadingConfirm}
                                     title={confirmText}
-                                    style={styles.confirmButton}
+                                    style={[styles.confirmButton, variant === 'danger' && { backgroundColor: colors.red[600] }]}
                                     disabled={disabled}
                                     onClick={handleConfirm}
                                 />
